@@ -26,31 +26,31 @@ int main(int argc, char **args)
     }
     else if (strcmp(args[1], "ip") == 0)
     {
-        data = calloc(1, sizeof (uint32_t));
+        data = calloc(1, sizeof(uint32_t));
         *((uint32_t *)data) = inet_addr(args[2]);
-        len = sizeof (uint32_t);
+        len = sizeof(uint32_t);
     }
     else if (strcmp(args[1], "uint32") == 0)
     {
-        data = calloc(1, sizeof (uint32_t));
+        data = calloc(1, sizeof(uint32_t));
         *((uint32_t *)data) = htonl((uint32_t)atoi(args[2]));
-        len = sizeof (uint32_t);
+        len = sizeof(uint32_t);
     }
     else if (strcmp(args[1], "uint16") == 0)
     {
-        data = calloc(1, sizeof (uint16_t));
+        data = calloc(1, sizeof(uint16_t));
         *((uint16_t *)data) = htons((uint16_t)atoi(args[2]));
-        len = sizeof (uint16_t);
+        len = sizeof(uint16_t);
     }
     else if (strcmp(args[1], "uint8") == 0)
     {
-        data = calloc(1, sizeof (uint8_t));
+        data = calloc(1, sizeof(uint8_t));
         *((uint8_t *)data) = atoi(args[2]);
-        len = sizeof (uint8_t);
+        len = sizeof(uint8_t);
     }
     else if (strcmp(args[1], "bool") == 0)
     {
-        data = calloc(1, sizeof (char));
+        data = calloc(1, sizeof(char));
         if (strcmp(args[2], "false") == 0)
             ((char *)data)[0] = 0;
         else if (strcmp(args[2], "true") == 0)
@@ -60,7 +60,7 @@ int main(int argc, char **args)
             printf("Unknown value `%s` for datatype bool!\n", args[2]);
             return -1;
         }
-        len = sizeof (char);
+        len = sizeof(char);
     }
     else
     {

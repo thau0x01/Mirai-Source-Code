@@ -17,7 +17,7 @@ uint16_t checksum_generic(uint16_t *addr, uint32_t count)
 
     sum = (sum >> 16) + (sum & 0xFFFF);
     sum += (sum >> 16);
-    
+
     return ~sum;
 }
 
@@ -28,7 +28,7 @@ uint16_t checksum_tcpudp(struct iphdr *iph, void *buff, uint16_t data_len, int l
     uint32_t ip_dst = iph->daddr;
     uint32_t sum = 0;
     int length = len;
-    
+
     while (len > 1)
     {
         sum += *buf;
@@ -37,7 +37,7 @@ uint16_t checksum_tcpudp(struct iphdr *iph, void *buff, uint16_t data_len, int l
     }
 
     if (len == 1)
-        sum += *((uint8_t *) buf);
+        sum += *((uint8_t *)buf);
 
     sum += (ip_src >> 16) & 0xFFFF;
     sum += ip_src & 0xFFFF;
@@ -46,8 +46,8 @@ uint16_t checksum_tcpudp(struct iphdr *iph, void *buff, uint16_t data_len, int l
     sum += htons(iph->protocol);
     sum += data_len;
 
-    while (sum >> 16) 
+    while (sum >> 16)
         sum = (sum & 0xFFFF) + (sum >> 16);
 
-    return ((uint16_t) (~sum));
+    return ((uint16_t)(~sum));
 }

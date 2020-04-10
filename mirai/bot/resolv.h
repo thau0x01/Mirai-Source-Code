@@ -2,7 +2,8 @@
 
 #include "includes.h"
 
-struct resolv_entries {
+struct resolv_entries
+{
     uint8_t addrs_len;
     ipv4_t *addrs;
 };

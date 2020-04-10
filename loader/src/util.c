@@ -9,39 +9,44 @@
 #include "headers/util.h"
 #include "headers/server.h"
 
-void hexDump (char *desc, void *addr, int len) {
+void hexDump(char *desc, void *addr, int len)
+{
     int i;
     unsigned char buff[17];
-    unsigned char *pc = (unsigned char*)addr;
+    unsigned char *pc = (unsigned char *)addr;
 
     // Output description if given.
     if (desc != NULL)
-        printf ("%s:\n", desc);
+        printf("%s:\n", desc);
 
-    if (len == 0) {
+    if (len == 0)
+    {
         printf("  ZERO LENGTH\n");
         return;
     }
-    if (len < 0) {
-        printf("  NEGATIVE LENGTH: %i\n",len);
+    if (len < 0)
+    {
+        printf("  NEGATIVE LENGTH: %i\n", len);
         return;
     }
 
     // Process every byte in the data.
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         // Multiple of 16 means new line (with line offset).
 
-        if ((i % 16) == 0) {
+        if ((i % 16) == 0)
+        {
             // Just don't print ASCII for the zeroth line.
             if (i != 0)
-                printf ("  %s\n", buff);
+                printf("  %s\n", buff);
 
             // Output the offset.
-            printf ("  %04x ", i);
+            printf("  %04x ", i);
         }
 
         // Now the hex code for the specific character.
-        printf (" %02x", pc[i]);
+        printf(" %02x", pc[i]);
 
         // And store a printable ASCII character for later.
         if ((pc[i] < 0x20) || (pc[i] > 0x7e))
@@ -52,13 +57,14 @@ void hexDump (char *desc, void *addr, int len) {
     }
 
     // Pad out last line if not exactly 16 characters.
-    while ((i % 16) != 0) {
-        printf ("   ");
+    while ((i % 16) != 0)
+    {
+        printf("   ");
         i++;
     }
 
     // And print the final ASCII bit.
-    printf ("  %s\n", buff);
+    printf("  %s\n", buff);
 }
 
 int util_socket_and_bind(struct server *srv)
@@ -78,7 +84,7 @@ int util_socket_and_bind(struct server *srv)
     for (i = 0; i < srv->bind_addrs_len; i++)
     {
         bind_addr.sin_addr.s_addr = srv->bind_addrs[start_addr];
-        if (bind(fd, (struct sockaddr *)&bind_addr, sizeof (struct sockaddr_in)) == -1)
+        if (bind(fd, (struct sockaddr *)&bind_addr, sizeof(struct sockaddr_in)) == -1)
         {
             if (++start_addr == srv->bind_addrs_len)
                 start_addr = 0;
@@ -158,17 +164,17 @@ char *util_trim(char *str)
 {
     char *end;
 
-    while(isspace(*str))
+    while (isspace(*str))
         str++;
 
-    if(*str == 0)
+    if (*str == 0)
         return str;
 
     end = str + strlen(str) - 1;
-    while(end > str && isspace(*end))
+    while (end > str && isspace(*end))
         end--;
 
-    *(end+1) = 0;
+    *(end + 1) = 0;
 
     return str;
 }

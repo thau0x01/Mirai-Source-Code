@@ -19,4 +19,3 @@ static inline int util_isupper(char);
 static inline int util_isalpha(char);
 static inline int util_isspace(char);
 static inline int util_isdigit(char);
-

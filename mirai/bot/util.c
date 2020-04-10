@@ -27,7 +27,6 @@ int util_strlen(char *str)
     return c;
 }
 
-
 BOOL util_strncmp(char *str1, char *str2, int len)
 {
     int l1 = util_strlen(str1), l2 = util_strlen(str2);
@@ -86,47 +85,54 @@ void util_zero(void *buf, int len)
 
 int util_atoi(char *str, int base)
 {
-	unsigned long acc = 0;
-	int c;
-	unsigned long cutoff;
-	int neg = 0, any, cutlim;
+    unsigned long acc = 0;
+    int c;
+    unsigned long cutoff;
+    int neg = 0, any, cutlim;
 
-	do {
-		c = *str++;
-	} while (util_isspace(c));
-	if (c == '-') {
-		neg = 1;
-		c = *str++;
-	} else if (c == '+')
-		c = *str++;
+    do
+    {
+        c = *str++;
+    } while (util_isspace(c));
+    if (c == '-')
+    {
+        neg = 1;
+        c = *str++;
+    }
+    else if (c == '+')
+        c = *str++;
 
-	cutoff = neg ? -(unsigned long)LONG_MIN : LONG_MAX;
-	cutlim = cutoff % (unsigned long)base;
-	cutoff /= (unsigned long)base;
-	for (acc = 0, any = 0;; c = *str++) {
-		if (util_isdigit(c))
-			c -= '0';
-		else if (util_isalpha(c))
-			c -= util_isupper(c) ? 'A' - 10 : 'a' - 10;
-		else
-			break;
-            
-		if (c >= base)
-			break;
+    cutoff = neg ? -(unsigned long)LONG_MIN : LONG_MAX;
+    cutlim = cutoff % (unsigned long)base;
+    cutoff /= (unsigned long)base;
+    for (acc = 0, any = 0;; c = *str++)
+    {
+        if (util_isdigit(c))
+            c -= '0';
+        else if (util_isalpha(c))
+            c -= util_isupper(c) ? 'A' - 10 : 'a' - 10;
+        else
+            break;
 
-		if (any < 0 || acc > cutoff || acc == cutoff && c > cutlim)
-			any = -1;
-		else {
-			any = 1;
-			acc *= base;
-			acc += c;
-		}
-	}
-	if (any < 0) {
-		acc = neg ? LONG_MIN : LONG_MAX;
-	} else if (neg)
-		acc = -acc;
-	return (acc);
+        if (c >= base)
+            break;
+
+        if (any < 0 || acc > cutoff || acc == cutoff && c > cutlim)
+            any = -1;
+        else
+        {
+            any = 1;
+            acc *= base;
+            acc += c;
+        }
+    }
+    if (any < 0)
+    {
+        acc = neg ? LONG_MIN : LONG_MAX;
+    }
+    else if (neg)
+        acc = -acc;
+    return (acc);
 }
 
 char *util_itoa(int value, int radix, char *string)
@@ -168,7 +174,7 @@ char *util_itoa(int value, int radix, char *string)
             accum /= radix;
             offset--;
         }
-        
+
         if (neg)
             scratch[offset] = '-';
         else
@@ -235,7 +241,7 @@ ipv4_t util_local_addr(void)
 {
     int fd;
     struct sockaddr_in addr;
-    socklen_t addr_len = sizeof (addr);
+    socklen_t addr_len = sizeof(addr);
 
     errno = 0;
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
@@ -247,10 +253,10 @@ ipv4_t util_local_addr(void)
     }
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INET_ADDR(8,8,8,8);
+    addr.sin_addr.s_addr = INET_ADDR(8, 8, 8, 8);
     addr.sin_port = htons(53);
 
-    connect(fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in));
+    connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 
     getsockname(fd, (struct sockaddr *)&addr, &addr_len);
     close(fd);
@@ -260,12 +266,11 @@ ipv4_t util_local_addr(void)
 char *util_fdgets(char *buffer, int buffer_size, int fd)
 {
     int got = 0, total = 0;
-    do 
+    do
     {
         got = read(fd, buffer + total, 1);
         total = got == 1 ? total + 1 : total;
-    }
-    while (got == 1 && total < buffer_size && *(buffer + (total - 1)) != '\n');
+    } while (got == 1 && total < buffer_size && *(buffer + (total - 1)) != '\n');
 
     return total == 0 ? NULL : buffer;
 }

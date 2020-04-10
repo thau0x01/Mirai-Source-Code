@@ -5,14 +5,16 @@
 #include "includes.h"
 #include "telnet_info.h"
 
-struct connection {
+struct connection
+{
     pthread_mutex_t lock;
     struct server *srv;
     struct binary *bin;
     struct telnet_info info;
     int fd, echo_load_pos;
     time_t last_recv;
-    enum {
+    enum
+    {
         TELNET_CLOSED,          // 0
         TELNET_CONNECTING,      // 1
         TELNET_READ_IACS,       // 2
@@ -34,7 +36,8 @@ struct connection {
         TELNET_RUN_BINARY,      // 18
         TELNET_CLEANUP          // 19
     } state_telnet;
-    struct {
+    struct
+    {
         char data[512];
         int deadline;
     } output_buffer;

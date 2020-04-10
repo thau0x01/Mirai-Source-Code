@@ -47,26 +47,26 @@ static void resolv_skip_name(uint8_t *reader, uint8_t *buffer, int *count)
 {
     unsigned int jumped = 0, offset;
     *count = 1;
-    while(*reader != 0)
+    while (*reader != 0)
     {
-        if(*reader >= 192)
+        if (*reader >= 192)
         {
-            offset = (*reader)*256 + *(reader+1) - 49152;
+            offset = (*reader) * 256 + *(reader + 1) - 49152;
             reader = buffer + offset - 1;
             jumped = 1;
         }
-        reader = reader+1;
-        if(jumped == 0)
+        reader = reader + 1;
+        if (jumped == 0)
             *count = *count + 1;
     }
 
-    if(jumped == 1)
+    if (jumped == 1)
         *count = *count + 1;
 }
 
 struct resolv_entries *resolv_lookup(char *domain)
 {
-    struct resolv_entries *entries = calloc(1, sizeof (struct resolv_entries));
+    struct resolv_entries *entries = calloc(1, sizeof(struct resolv_entries));
     char query[2048], response[2048];
     struct dnshdr *dnsh = (struct dnshdr *)query;
     char *qname = (char *)(dnsh + 1);
@@ -75,13 +75,13 @@ struct resolv_entries *resolv_lookup(char *domain)
 
     struct dns_question *dnst = (struct dns_question *)(qname + util_strlen(qname) + 1);
     struct sockaddr_in addr = {0};
-    int query_len = sizeof (struct dnshdr) + util_strlen(qname) + 1 + sizeof (struct dns_question);
+    int query_len = sizeof(struct dnshdr) + util_strlen(qname) + 1 + sizeof(struct dns_question);
     int tries = 0, fd = -1, i = 0;
     uint16_t dns_id = rand_next() % 0xffff;
 
-    util_zero(&addr, sizeof (struct sockaddr_in));
+    util_zero(&addr, sizeof(struct sockaddr_in));
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INET_ADDR(8,8,8,8);
+    addr.sin_addr.s_addr = INET_ADDR(8, 8, 8, 8);
     addr.sin_port = htons(53);
 
     // Set up the dns query
@@ -108,7 +108,7 @@ struct resolv_entries *resolv_lookup(char *domain)
             continue;
         }
 
-        if (connect(fd, (struct sockaddr *)&addr, sizeof (struct sockaddr_in)) == -1)
+        if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
         {
 #ifdef DEBUG
             printf("[resolv] Failed to call connect on udp socket\n");
@@ -153,13 +153,13 @@ struct resolv_entries *resolv_lookup(char *domain)
 #ifdef DEBUG
             printf("[resolv] Got response from select\n");
 #endif
-            int ret = recvfrom(fd, response, sizeof (response), MSG_NOSIGNAL, NULL, NULL);
+            int ret = recvfrom(fd, response, sizeof(response), MSG_NOSIGNAL, NULL, NULL);
             char *name;
             struct dnsans *dnsa;
             uint16_t ancount;
             int stop;
 
-            if (ret < (sizeof (struct dnshdr) + util_strlen(qname) + 1 + sizeof (struct dns_question)))
+            if (ret < (sizeof(struct dnshdr) + util_strlen(qname) + 1 + sizeof(struct dns_question)))
                 continue;
 
             dnsh = (struct dnshdr *)response;
@@ -189,12 +189,12 @@ struct resolv_entries *resolv_lookup(char *domain)
                     {
                         uint32_t *p;
                         uint8_t tmp_buf[4];
-                        for(i = 0; i < 4; i++)
+                        for (i = 0; i < 4; i++)
                             tmp_buf[i] = name[i];
 
                         p = (uint32_t *)tmp_buf;
 
-                        entries->addrs = realloc(entries->addrs, (entries->addrs_len + 1) * sizeof (ipv4_t));
+                        entries->addrs = realloc(entries->addrs, (entries->addrs_len + 1) * sizeof(ipv4_t));
                         entries->addrs[entries->addrs_len++] = (*p);
 #ifdef DEBUG
                         printf("[resolv] Found IP address: %08x\n", (*p));
@@ -202,7 +202,9 @@ struct resolv_entries *resolv_lookup(char *domain)
                     }
 
                     name = name + ntohs(r_data->data_len);
-                } else {
+                }
+                else
+                {
                     resolv_skip_name(name, response, &stop);
                     name = name + stop;
                 }
